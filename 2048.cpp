@@ -38,6 +38,7 @@ int main()
           {
             matriz[j][k] = 0;
             matriz[j][k + 1] *= 2;
+            
           }
 
           else if (modifier == -1)
@@ -62,6 +63,7 @@ int main()
       cout << endl;
     }
   }
+  cout << "cona" << endl;
 
   return 0;
 }
