@@ -63,7 +63,7 @@ int main()
       cout << endl;
     }
   }
-  cout << "cona" << endl;
+  cout << "cona gostosa" << endl;
 
   return 0;
 }
