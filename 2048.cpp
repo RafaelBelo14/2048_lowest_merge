@@ -63,7 +63,6 @@ int main()
       cout << endl;
     }
   }
-  cout << "cona gostosa" << endl;
 
   return 0;
 }
