@@ -2,11 +2,11 @@
 #include <set>
 using namespace std;
 
-void slide_right(int line[], int size, int flag);
-void push_line_right(int line[], int index);
-
 void slide_left(int line[], int size, int flag);
 void push_line_left(int line[], int index, int size);
+
+void slide_right(int line[], int size, int flag);
+void push_line_right(int line[], int index);
 
 void print_line(int line[], int size);
 
@@ -66,7 +66,7 @@ int main()
         {
           for (int j = 0; j < size; j++)
           {
-            slide_left(matriz[j], size, flag);
+            slide_right(matriz[j], size, flag);
           }
         }
 
@@ -74,7 +74,7 @@ int main()
         {
           for (int j = 0; j < size; j++)
           {
-            slide_right(matriz[j], size, flag);
+            slide_left(matriz[j], size, flag);
           }
         }
 
@@ -106,7 +106,7 @@ int main()
   return 0;
 }
 
-void slide_right(int line[], int size, int flag)
+void slide_left(int line[], int size, int flag)
 {
 
   for (int i = 0; i < size - 1; i++)
@@ -114,7 +114,7 @@ void slide_right(int line[], int size, int flag)
     if (line[i] == line[i + 1] && flag == 0)
     {
       line[i + 1] *= 2;
-      push_line_right(line, i);
+      push_line_left(line, i, size);
       flag = 1;
     }
 
@@ -125,7 +125,7 @@ void slide_right(int line[], int size, int flag)
 
     else if (line[i + 1] == 0)
     {
-      push_line_right(line, i + 1);
+      push_line_left(line, i + 1, size);
     }
 
     else
@@ -137,7 +137,7 @@ void slide_right(int line[], int size, int flag)
   }
 }
 
-void slide_left(int line[], int size, int flag)
+void slide_right(int line[], int size, int flag)
 {
 
   for (int i = size - 1; i > 0; i--)
@@ -145,7 +145,7 @@ void slide_left(int line[], int size, int flag)
     if (line[i] == line[i - 1] && flag == 0)
     {
       line[i - 1] *= 2;
-      push_line_left(line, i, size);
+      push_line_right(line, i);
       flag = 1;
     }
 
@@ -156,7 +156,7 @@ void slide_left(int line[], int size, int flag)
 
     else if (line[i - 1] == 0)
     {
-      push_line_left(line, i - 1, size);
+      push_line_right(line, i - 1);
     }
 
     else
