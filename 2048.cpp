@@ -123,9 +123,10 @@ void slide_left(int line[], int size, int flag)
       flag = 0;
     }
 
-    else if (line[i + 1] == 0)
+    else if (line[i] == 0)
     {
-      push_line_left(line, i + 1, size);
+      push_line_left(line, i, size);
+      i--;
     }
 
     else
@@ -154,9 +155,10 @@ void slide_right(int line[], int size, int flag)
       flag = 0;
     }
 
-    else if (line[i - 1] == 0)
+    else if (line[i] == 0)
     {
-      push_line_right(line, i - 1);
+      push_line_right(line, i);
+      i++;
     }
 
     else
