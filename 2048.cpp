@@ -66,7 +66,7 @@ int main()
         {
           for (int j = 0; j < size; j++)
           {
-            slide_right(matriz[j], size, flag);
+            slide_left(matriz[j], size, flag);
           }
         }
 
@@ -74,7 +74,7 @@ int main()
         {
           for (int j = 0; j < size; j++)
           {
-            slide_left(matriz[j], size, flag);
+            slide_right(matriz[j], size, flag);
           }
         }
 
@@ -127,6 +127,18 @@ void slide_left(int line[], int size, int flag)
     {
       push_line_left(line, i, size);
       i--;
+
+      if (line[i] == line[i + 1] && flag == 0)
+      {
+        line[i + 1] *= 2;
+        push_line_left(line, i, size);
+        flag = 1;
+      }
+
+      else if (line[i] == line[i + 1] && flag == 1)
+      {
+        flag = 0;
+      }
     }
 
     else
@@ -159,6 +171,18 @@ void slide_right(int line[], int size, int flag)
     {
       push_line_right(line, i);
       i++;
+
+      if (line[i] == line[i - 1] && flag == 0)
+      {
+        line[i - 1] *= 2;
+        push_line_right(line, i);
+        flag = 1;
+      }
+
+      else if (line[i] == line[i - 1] && flag == 1)
+      {
+        flag = 0;
+      }
     }
 
     else
