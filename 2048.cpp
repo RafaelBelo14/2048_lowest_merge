@@ -1,5 +1,5 @@
 #include <iostream>
-#include <list>
+#include <set>
 using namespace std;
 
 void slide_right(int line[], int size, int flag);
@@ -14,7 +14,6 @@ int main()
 {
   int reps, size, moves, aux;
   int flag = 0;
-  int slide_help_iterator = 0;
   string move;
   cin >> reps;
 
@@ -32,42 +31,19 @@ int main()
       }
     }
 
-    cout << "Qual movimento?" << endl;
-    cin >> move;
-
-    if (move.compare("R") == 0)
+    while (cin >> move)
     {
-      cout << "Right" << endl;
-      for (int j = 0; j < size; j++)
-      {
-        slide_right(matriz[j], size, flag);
-      }
-    }
 
-    else if (move.compare("L") == 0)
-    {
-      cout << "Left" << endl;
-      for (int j = 0; j < size; j++)
+      if (move.compare("R") == 0)
       {
-        slide_left(matriz[j], size, flag);
-      }
-    }
-
-    else
-    {
-      for (int i = 0; i < size; ++i)
-      {
-        for (int j = i; j < size; ++j)
+        for (int j = 0; j < size; j++)
         {
-          aux = matriz[j][i];
-          matriz[j][i] = matriz[i][j];
-          matriz[i][j] = aux;
+          slide_right(matriz[j], size, flag);
         }
       }
 
-      if (move.compare("U") == 0)
+      else if (move.compare("L") == 0)
       {
-        cout << "Up" << endl;
         for (int j = 0; j < size; j++)
         {
           slide_left(matriz[j], size, flag);
@@ -76,25 +52,45 @@ int main()
 
       else
       {
-        cout << "Down" << endl;
-        for (int j = 0; j < size; j++)
+        for (int i = 0; i < size; ++i)
         {
-          slide_right(matriz[j], size, flag);
+          for (int j = i; j < size; ++j)
+          {
+            aux = matriz[j][i];
+            matriz[j][i] = matriz[i][j];
+            matriz[i][j] = aux;
+          }
         }
-      }
 
-      for (int i = 0; i < size; ++i)
-      {
-        for (int j = i; j < size; ++j)
+        if (move.compare("U") == 0)
         {
-          aux = matriz[j][i];
-          matriz[j][i] = matriz[i][j];
-          matriz[i][j] = aux;
+          for (int j = 0; j < size; j++)
+          {
+            slide_left(matriz[j], size, flag);
+          }
+        }
+
+        else
+        {
+          for (int j = 0; j < size; j++)
+          {
+            slide_right(matriz[j], size, flag);
+          }
+        }
+
+        for (int i = 0; i < size; ++i)
+        {
+          for (int j = i; j < size; ++j)
+          {
+            aux = matriz[j][i];
+            matriz[j][i] = matriz[i][j];
+            matriz[i][j] = aux;
+          }
         }
       }
     }
 
-    cout << "================" << endl;
+    cout << "======= FINAL =========" << endl;
 
     for (int j = 0; j < size; j++)
     {
@@ -174,26 +170,18 @@ void slide_left(int line[], int size, int flag)
 
 void push_line_right(int line[], int index)
 {
-  /*if (index == 0)
-  {
-    line[0] = 0;
-    return;
-  }
-  else
-  {*/
   for (int i = index; i > 0; i--)
   {
-    line[i] = line[i - 1]; //move all element to the left except first one
+    line[i] = line[i - 1];
   }
   line[0] = 0;
-  //}
 }
 
 void push_line_left(int line[], int index, int size)
 {
   for (int i = index; i < size; i++)
   {
-    line[i] = line[i + 1]; //move all element to the left except first one
+    line[i] = line[i + 1];
   }
   line[size - 1] = 0;
 }
