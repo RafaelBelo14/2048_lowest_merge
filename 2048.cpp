@@ -2,7 +2,7 @@
 #include <set>
 using namespace std;
 
-void slide_left(int line[], int size, int index, int flag);
+void slide_left(int line[], int size, int flag);
 void push_line_left(int line[], int index, int size);
 
 void slide_right(int line[], int size, int flag);
@@ -46,7 +46,7 @@ int main()
                   {
                         for (int j = 0; j < size; j++)
                         {
-                              slide_left(matriz[j], size, 0, flag);
+                              slide_left(matriz[j], size, flag);
                         }
                   }
 
@@ -66,7 +66,7 @@ int main()
                         {
                               for (int j = 0; j < size; j++)
                               {
-                                    slide_left(matriz[j], size, 0, flag);
+                                    slide_left(matriz[j], size, flag);
                               }
                         }
 
@@ -106,46 +106,7 @@ int main()
       return 0;
 }
 
-void slide_left(int line[], int size, int index, int flag)
-{
-      if (index == size - 1) {
-            return;
-      }
-
-      if (line[index] == 0) {
-            push_line_left(line, index, size);
-
-            if (line[index + 1] != 0) {
-                  slide_left(line, size, index, flag);
-            }
-      }
-
-      if (line[index + 1] == 0)
-      {
-            push_line_left(line, index, size);
-            if (line[index + 1] != 0) {
-                  slide_left(line, size, index, flag);
-            }
-      }
-
-      else
-      {
-            if (line[index] == line[index + 1] && flag == 0)
-            {
-                  line[index + 1] = 0;
-                  line[index] *= 2;
-                  flag = 1;
-                  slide_left(line, size, index, flag);
-            }
-            else
-            {
-                  flag = 0;
-                  slide_left(line, size, index + 1, flag);
-            }
-      }
-}
-
-/*void slide_left2(int line[], int size, int flag)
+void slide_left(int line[], int size, int flag)
 {
 
       for (int i = 0; i < size - 1; i++)
@@ -156,7 +117,7 @@ void slide_left(int line[], int size, int index, int flag)
                         --i;
                   }
             }
-            if (line[i + 1] == 0)
+            else if (line[i + 1] == 0)
             {
                   push_line_left(line, i + 1, size);
                   if (line[i + 1] != 0) {
@@ -178,9 +139,9 @@ void slide_left(int line[], int size, int index, int flag)
                   }
             }
       }
-}*/
+}
 
-void slide_right(int line[], int size, int flag)
+void slide_right(int line[], int size, int flag) 
 {
       for (int i = size - 1; i > 0; i--)
       {
@@ -190,7 +151,7 @@ void slide_right(int line[], int size, int flag)
                         ++i;
                   }
             }
-            if (line[i - 1] == 0)
+            else if (line[i - 1] == 0)
             {
                   push_line_right(line, i - 1, size);
                   if (line[i - 1] != 0) {
@@ -211,6 +172,8 @@ void slide_right(int line[], int size, int flag)
                         flag = 0;
                   }
             }
+
+            print_line(line, size);
       }
 }
 
@@ -232,7 +195,7 @@ void push_line_left(int line[], int index, int size)
 
 void push_line_right(int line[], int index, int size)
 {
-      for (int j = index; j >= 0; j--)
+      for (int j = index; j > 0; j--)
       {
             for (int i = j - 1; i >= 0; i--)
             {
