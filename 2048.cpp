@@ -32,7 +32,6 @@ node * buildTree(node * raiz, int level, int nodeLevel, int brotherCount) {
       node * auxNode;
 
       if (nodeLevel == level) {
-            //cout << "Acabei aqui!" << endl;
             return auxNode;
       }
 
@@ -87,7 +86,7 @@ int main()
             cin >> moves;
             int matriz[size][size];
             nodeAux = insertNode('M', 0, NULL, NULL);
-            nodeAux = buildTree(nodeAux, size, nodeAux->level, 0);
+            nodeAux = buildTree(nodeAux, moves + 1, nodeAux->level, 0);
             print_tree(nodeAux, size);
 
             for (int j = 0; j < size; j++)
@@ -98,10 +97,11 @@ int main()
                   }
             }
 
-            while (cin >> move)
+            while (nodeAux->nodeSon != NULL)
             {
+                  //cout << nodeAux->nodeSon->slide << endl;
 
-                  if (move.compare("R") == 0)
+                  if (nodeAux->nodeSon->slide == 'R')
                   {
                         for (int j = 0; j < size; j++)
                         {
@@ -109,7 +109,7 @@ int main()
                         }
                   }
 
-                  else if (move.compare("L") == 0)
+                  else if (nodeAux->nodeSon->slide == 'L')
                   {
                         for (int j = 0; j < size; j++)
                         {
@@ -129,7 +129,7 @@ int main()
                               }
                         }
 
-                        if (move.compare("U") == 0)
+                        if (nodeAux->nodeSon->slide == 'U')
                         {
                               for (int j = 0; j < size; j++)
                               {
@@ -155,6 +155,8 @@ int main()
                               }
                         }
                   }
+
+                  nodeAux = nodeAux->nodeSon;
             }
 
             cout << "======= FINAL =========" << endl;
@@ -239,8 +241,6 @@ void slide_right(int line[], int size, int flag)
                         flag = 0;
                   }
             }
-
-            print_line(line, size);
       }
 }
 
@@ -294,8 +294,8 @@ void print_tree(node * n, int nivel) {
       }
       cout << n->slide << endl;
 
-      //imprime filhos primeiro
       print_tree(n->nodeSon, nivel+1);
-      //imprime irmaos
       print_tree(n->nodeBrother, nivel);
+
+      free(n);
  }
