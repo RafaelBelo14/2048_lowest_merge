@@ -1,21 +1,24 @@
 #include <iostream>
+#include <algorithm>
 #include <set>
 using namespace std;
 
-struct Node { 
+struct Node
+{
       char slide;
       int numZeros;
       int level;
-      Node *nodeFather; 
-      Node *nodeBrother; 
+      int **matriz;
+      Node *nodeFather;
+      Node *nodeBrother;
       Node *nodeSon;
-}; 
+};
 
 typedef struct Node node;
 
-node * insertNode(char slide, int level, node * nodeFather, node * nodeSon)
+node *insertNode(char slide, int level, node *nodeFather, node *nodeSon)
 {
-      node * auxNode = (node *)malloc(sizeof(node));
+      node *auxNode = (node *)malloc(sizeof(node));
       auxNode->slide = slide;
       auxNode->level = level;
       auxNode->nodeFather = nodeFather;
@@ -25,33 +28,41 @@ node * insertNode(char slide, int level, node * nodeFather, node * nodeSon)
       return auxNode;
 }
 
-node * buildTree(node * raiz, int level, int nodeLevel, int brotherCount) { 
+node *buildTree(node *raiz, int level, int nodeLevel, int brotherCount)
+{
 
-      node * auxNode;
+      node *auxNode;
 
-      if (nodeLevel == level) {
+      if (nodeLevel == level)
+      {
             return auxNode;
       }
 
-      if (raiz->nodeSon == NULL && raiz->level + 1 != level) {
+      if (raiz->nodeSon == NULL && raiz->level + 1 != level)
+      {
             auxNode = insertNode('L', raiz->level + 1, raiz, NULL);
             raiz->nodeSon = buildTree(auxNode, level, auxNode->level, 0);
       }
 
-      if (raiz->nodeFather != NULL) {
+      if (raiz->nodeFather != NULL)
+      {
             auxNode = insertNode('R', raiz->level, NULL, NULL);
             raiz->nodeBrother = buildTree(auxNode, level, auxNode->level, 1);
             brotherCount = 0;
       }
 
-      else if (raiz->nodeFather == NULL && brotherCount != 3 && raiz->level != 0) {
-            if (raiz->slide == 'L') {
+      else if (raiz->nodeFather == NULL && brotherCount != 3 && raiz->level != 0)
+      {
+            if (raiz->slide == 'L')
+            {
                   auxNode = insertNode('R', raiz->level, NULL, NULL);
             }
-            else if (raiz->slide == 'R') {
+            else if (raiz->slide == 'R')
+            {
                   auxNode = insertNode('U', raiz->level, NULL, NULL);
             }
-            if (raiz->slide == 'U') {
+            if (raiz->slide == 'U')
+            {
                   auxNode = insertNode('D', raiz->level, NULL, NULL);
             }
 
@@ -59,23 +70,26 @@ node * buildTree(node * raiz, int level, int nodeLevel, int brotherCount) {
       }
 
       return raiz;
-} 
+}
 
-void inputMatrix(int ** matriz, int size);
-void doTranspose(int ** matriz, int size);
-void slide_left(int ** matriz, int size, int flag);
-void push_line_left(int line[], int index, int size);
-void slide_right(int ** matriz, int size, int flag);
-void push_line_right(int line[], int index, int size);
+void inputMatrix(int **matriz, int size);
+void doTranspose(int **matriz, int size);
+int checkDuplicates(int ** matriz, int size);
+bool slide_left(int **matriz, int size, int flag, bool moveOcurred);
+bool slide_right(int **matriz, int size, int flag, bool moveOcurred);
+bool push_line_left(int line[], int index, int size);
+bool push_line_right(int line[], int index, int size);
 void print_line(int line[], int size);
-void print_tree(node * n, int nivel);
-void printMatrix(int ** matrix, int size);
+void print_tree(node *n, int nivel);
+void printMatrix(int **matrix, int size);
 
 int main()
 {
       int reps, size, moves, aux;
+      bool moveOcurred = false;
+      int duplicates;
       int flag = 0;
-      node * nodeAux;
+      node *nodeAux;
       string move;
       cin >> reps;
 
@@ -86,35 +100,42 @@ int main()
 
             nodeAux = insertNode('M', 0, NULL, NULL);
             nodeAux = buildTree(nodeAux, moves + 1, nodeAux->level, 0);
-            //print_tree(nodeAux, size);
 
-            int ** matriz = (int **)malloc(size * sizeof(int *));
-            for (i = 0; i < size; ++i) {
+            int **matriz = (int **)malloc(size * sizeof(int *));
+            for (i = 0; i < size; ++i)
+            {
                   matriz[i] = (int *)malloc(size * sizeof(int *));
             }
-                  
 
-            for (int j = 0; j < size; j++)
-            {
-                  for (int k = 0; k < size; k++)
-                  {
-                        cin >> matriz[j][k];
-                  }
-            }
+            inputMatrix(matriz, size);
 
             //printMatrix(matriz, size);
 
             while (nodeAux->nodeSon != NULL)
             {
 
+                  duplicates = checkDuplicates(matriz, size);
+
+                  if (duplicates == -1) {
+                        cout << "Há elementos iguais!" << endl;
+                  }
+                  else if(duplicates == 1){
+                        cout << "Não há elementos iguais ou é tudo zeros!" << endl;
+                        break;
+                  }
+                  else if (duplicates == 2) {
+                        cout << "Ganhou!" << endl;
+                        break;
+                  }
+
                   if (nodeAux->nodeSon->slide == 'R')
                   {
-                        slide_right(matriz, size, flag);
+                        moveOcurred = slide_right(matriz, size, flag, moveOcurred);
                   }
 
                   else if (nodeAux->nodeSon->slide == 'L')
                   {
-                        slide_left(matriz, size, flag);
+                        moveOcurred = slide_left(matriz, size, flag, moveOcurred);
                   }
 
                   else
@@ -123,16 +144,25 @@ int main()
 
                         if (nodeAux->nodeSon->slide == 'U')
                         {
-                              slide_left(matriz, size, flag);
+                              moveOcurred = slide_left(matriz, size, flag, moveOcurred);
                         }
 
-                        else{
-                              slide_right(matriz, size, flag);
+                        else
+                        {
+                              moveOcurred = slide_right(matriz, size, flag, moveOcurred);
                         }
 
                         doTranspose(matriz, size);
                   }
 
+                  if (moveOcurred) {
+                        cout << "Houve movimento!" << endl;
+                  }
+                  else {
+                        cout << "Não houve movimento!" << endl;
+                  }
+
+                  moveOcurred = false;
                   nodeAux = nodeAux->nodeSon;
             }
 
@@ -144,7 +174,8 @@ int main()
       return 0;
 }
 
-void inputMatrix(int ** matriz, int size) {
+void inputMatrix(int ** matriz, int size)
+{
       for (int j = 0; j < size; j++)
       {
             for (int k = 0; k < size; k++)
@@ -154,7 +185,8 @@ void inputMatrix(int ** matriz, int size) {
       }
 }
 
-void doTranspose(int ** matriz, int size) {
+void doTranspose(int ** matriz, int size)
+{
       int aux;
 
       for (int i = 0; i < size; ++i)
@@ -168,23 +200,63 @@ void doTranspose(int ** matriz, int size) {
       }
 }
 
-void slide_left(int ** matriz, int size, int flag)
+int checkDuplicates(int ** matriz, int size) {
+
+      set<int> table;
+
+      for (int i = 0; i < size; ++i)
+      {
+            for (int j = 0; j < size; ++j)
+            {
+                  if (matriz[i][j] != 0) {
+                        if (table.find(matriz[i][j]) != table.end()) {
+                              table.clear();
+                              return -1;
+                        }
+                        table.insert(matriz[i][j]);
+                  }
+            }
+      }
+
+      if (table.size() == 1) {
+            table.clear();
+            return 2;
+      }
+      
+      table.clear();
+      return 1;
+}
+
+bool slide_left(int ** matriz, int size, int flag, bool moveOcurred)
 {
-      for (int j = 0; j < size; j++) {
+      bool changes;
+
+      for (int j = 0; j < size; j++)
+      {
             for (int i = 0; i < size - 1; i++)
             {
-                  if (matriz[j][i] == 0) {
-                        push_line_left(matriz[j], i, size);
-                        if (matriz[j][i + 1] != 0) {
-                              print_line(matriz[j], size);
+                  if (matriz[j][i] == 0)
+                  {
+                        changes = push_line_left(matriz[j], i, size);
+                        if (matriz[j][i + 1] != 0)
+                        {
                               --i;
+                        }
+
+                        if (moveOcurred == false && changes == true) {
+                              moveOcurred = true;
                         }
                   }
                   else if (matriz[j][i + 1] == 0)
                   {
-                        push_line_left(matriz[j], i + 1, size);
-                        if (matriz[j][i + 1] != 0) {
+                        changes = push_line_left(matriz[j], i + 1, size);
+                        if (matriz[j][i + 1] != 0)
+                        {
                               --i;
+                        }
+
+                        if (moveOcurred == false && changes == true) {
+                              moveOcurred = true;
                         }
                   }
                   else
@@ -195,34 +267,50 @@ void slide_left(int ** matriz, int size, int flag)
                               matriz[j][i] *= 2;
                               flag = 1;
                               i--;
+                              moveOcurred = true;
                         }
                         else
                         {
                               flag = 0;
                         }
                   }
-            } 
+            }
             flag = 0;
       }
-      
+
+      return moveOcurred;
 }
 
-void slide_right(int ** matriz, int size, int flag) 
+bool slide_right(int ** matriz, int size, int flag, bool moveOcurred)
 {
-      for (int j = 0; j < size; j++) {
+      bool changes;
+
+      for (int j = 0; j < size; j++)
+      {
             for (int i = size - 1; i > 0; i--)
             {
-                  if (matriz[j][i] == 0) {
-                        push_line_right(matriz[j], i, size);
-                        if (matriz[j][i - 1] != 0) {
+                  if (matriz[j][i] == 0)
+                  {
+                        changes = push_line_right(matriz[j], i, size);
+                        if (matriz[j][i - 1] != 0)
+                        {
                               ++i;
+                        }
+
+                        if (moveOcurred == false && changes == true) {
+                              moveOcurred = true;
                         }
                   }
                   else if (matriz[j][i - 1] == 0)
                   {
-                        push_line_right(matriz[j], i - 1, size);
-                        if (matriz[j][i - 1] != 0) {
+                        changes = push_line_right(matriz[j], i - 1, size);
+                        if (matriz[j][i - 1] != 0)
+                        {
                               ++i;
+                        }
+
+                        if (moveOcurred == false && changes == true) {
+                              moveOcurred = true;
                         }
                   }
                   else
@@ -233,6 +321,7 @@ void slide_right(int ** matriz, int size, int flag)
                               matriz[j][i] *= 2;
                               flag = 1;
                               ++i;
+                              moveOcurred = true;
                         }
                         else
                         {
@@ -242,10 +331,15 @@ void slide_right(int ** matriz, int size, int flag)
             }
             flag = 0;
       }
+
+      return moveOcurred;
 }
 
-void push_line_left(int line[], int index, int size)
+bool push_line_left(int line[], int index, int size)
 {
+      
+      bool changes = false;
+
       for (int j = index; j < size; j++)
       {
             for (int i = j + 1; i < size; i++)
@@ -254,14 +348,19 @@ void push_line_left(int line[], int index, int size)
                   {
                         line[j] = line[i];
                         line[i] = 0;
+                        changes = true;
                         break;
                   }
             }
       }
+
+      return changes;
 }
 
-void push_line_right(int line[], int index, int size)
+bool push_line_right(int line[], int index, int size)
 {
+      bool changes = false;
+
       for (int j = index; j > 0; j--)
       {
             for (int i = j - 1; i >= 0; i--)
@@ -270,10 +369,13 @@ void push_line_right(int line[], int index, int size)
                   {
                         line[j] = line[i];
                         line[i] = 0;
+                        changes = true;
                         break;
                   }
             }
       }
+
+      return changes;
 }
 
 void print_line(int line[], int size)
@@ -287,20 +389,24 @@ void print_line(int line[], int size)
       cout << endl;
 }
 
-void print_tree(node * n, int nivel) {
-      if(n==NULL) return;
-      for(int i = 0; i < nivel; ++i) {
+void print_tree(node * n, int nivel)
+{
+      if (n == NULL)
+            return;
+      for (int i = 0; i < nivel; ++i)
+      {
             cout << "..";
       }
       cout << n->slide << endl;
 
-      print_tree(n->nodeSon, nivel+1);
+      print_tree(n->nodeSon, nivel + 1);
       print_tree(n->nodeBrother, nivel);
 
       free(n);
- }
+}
 
- void printMatrix(int ** matriz, int size) {
+void printMatrix(int ** matriz, int size)
+{
       for (int j = 0; j < size; j++)
       {
             for (int k = 0; k < size; k++)
@@ -308,5 +414,5 @@ void print_tree(node * n, int nivel) {
                   cout << matriz[j][k] << " ";
             }
             cout << endl;
-      } 
- }
+      }
+}
