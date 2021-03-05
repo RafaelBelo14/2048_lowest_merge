@@ -1,16 +1,19 @@
 #include <iostream>
 #include <algorithm>
 #include <set>
+#include <vector>
 using namespace std;
 
 int limite;
+vector<int> output;
+vector<string> teste;
 
 struct Node
 {
       char slide;
       int numZeros;
       int level;
-      int **matriz;
+      vector<vector<int> > matriz;
       Node *nodeFather;
       Node *nodeBrother;
       Node *nodeSon;
@@ -33,11 +36,11 @@ node *insertNode(char slide, int level, node *nodeFather, node *nodeSon)
 node *buildTree(node *raiz, int level, int nodeLevel, int brotherCount)
 {
 
-      node *auxNode;
+      node * auxNode = NULL;
 
       if (nodeLevel == level)
       {
-            return auxNode;
+            return raiz;
       }
 
       if (raiz->nodeSon == NULL && raiz->level + 1 != level)
@@ -74,18 +77,19 @@ node *buildTree(node *raiz, int level, int nodeLevel, int brotherCount)
       return raiz;
 }
 
-void inputMatrix(int **matriz, int size);
-void doTranspose(int **matriz, int size);
-int checkDuplicates(int **matriz, int size);
-bool slide_left(int **matriz, int size, int flag, bool moveOcurred);
-bool slide_right(int **matriz, int size, int flag, bool moveOcurred);
-bool push_line_left(int line[], int index, int size);
-bool push_line_right(int line[], int index, int size);
-void print_line(int line[], int size);
-void print_tree(node *n, int nivel);
-void printMatrix(int **matrix, int size);
-bool checkSlide(int **matriz, int size, int flag, node *nodeAux, bool moveOcurred);
+vector< vector<int> > inputMatrix(vector< vector<int> > matriz, int size);
+vector< vector<int> > doTranspose(vector< vector<int> > matriz, int size);
+int checkDuplicates(vector< vector<int> > matriz, int size);
+vector< vector<int> > slide_left(vector< vector<int> > matriz, int size, int flag);
+vector< vector<int> > slide_right(vector< vector<int> > matriz, int size, int flag);
+vector<int> push_line_left(vector<int> line, int index, int size);
+vector<int> push_line_right(vector<int>, int index);
+void print_line(vector<int>, int size);
+void print_tree(node *n, int nivel, int size);
+void printMatrix(vector< vector<int> > matriz, int size);
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int size, int flag, node *nodeAux);
 void searchSolution(int size, int flag, node *nodeAux);
+void free_tree(node *n, int nivel);
 
 int main()
 {
@@ -96,25 +100,22 @@ int main()
       string move;
       cin >> reps;
 
-      for (int i = 0; i < reps; i++)
-      {
+      //for (int i = 0; i < reps; i++)
+      //{
             cin >> size;
             cin >> limite;
 
+            vector< vector<int> > matriz;
+
             nodeAux = insertNode('M', 0, NULL, NULL);
             nodeAux = buildTree(nodeAux, limite + 1, nodeAux->level, 0);
+            //print_tree(nodeAux, limite, size);
 
-            int **matriz = (int **)malloc(size * sizeof(int *));
-            for (i = 0; i < size; ++i)
-            {
-                  matriz[i] = (int *)malloc(size * sizeof(int *));
-            }
-
-            inputMatrix(matriz, size);
-            //print_tree(nodeAux, limite);
-
+            matriz = inputMatrix(matriz, size);
+            
             // TODO: VERIFICAR ZEROS E REPETIDOS
             nodeAux->matriz = matriz;
+
             duplicates = checkDuplicates(nodeAux->matriz, size);
 
             if (duplicates == 1)
@@ -125,34 +126,50 @@ int main()
             else if (duplicates == 2)
             {
                   cout << "Ganhou!" << endl;
-                  limite = nodeAux->nodeSon->level;
+                  //limite = nodeAux->nodeSon->level;
                   return 0;
             }
 
             searchSolution(size, flag, nodeAux);
 
-            //printMatrix(matriz, size);
+            if (output.size() == 0) {
+                  teste.push_back("no solution");
+            }
+            else {
+                  teste.push_back(to_string(*min_element(output.begin(), output.end())));
+            }
+            output.clear();
+      //}
 
-            cout << "======= FINAL =========" << endl;
-
-            printMatrix(matriz, size);
-      }
-
+      for (auto i = teste.begin(); i != teste.end(); ++i) 
+            cout << *i << endl; 
+      
+      free_tree(nodeAux, limite);
+      teste.clear();
       return 0;
 }
 
-void inputMatrix(int **matriz, int size)
+vector< vector<int> > inputMatrix(vector< vector<int> > matriz, int size)
 {
-      for (int j = 0; j < size; j++)
-      {
-            for (int k = 0; k < size; k++)
-            {
-                  cin >> matriz[j][k];
-            }
-      }
+      int aux;
+
+      for (int i = 0; i < size; i++) { 
+
+        vector<int> v1; 
+  
+        for (int j = 0; j < size; j++) { 
+            cin >> aux;
+            v1.push_back(aux); 
+        } 
+
+        matriz.push_back(v1); 
+    }
+
+    return matriz;
 }
 
-void doTranspose(int **matriz, int size)
+
+vector< vector<int> > doTranspose(vector< vector<int> > matriz, int size)
 {
       int aux;
 
@@ -165,9 +182,11 @@ void doTranspose(int **matriz, int size)
                   matriz[i][j] = aux;
             }
       }
+
+      return matriz;
 }
 
-int checkDuplicates(int **matriz, int size)
+int checkDuplicates(vector< vector<int> > matriz, int size)
 {
 
       set<int> table;
@@ -198,9 +217,9 @@ int checkDuplicates(int **matriz, int size)
       return 1;
 }
 
-bool slide_left(int **matriz, int size, int flag, bool moveOcurred)
+
+vector<vector<int> > slide_left(vector< vector<int> > matriz, int size, int flag)
 {
-      bool changes;
 
       for (int j = 0; j < size; j++)
       {
@@ -208,28 +227,18 @@ bool slide_left(int **matriz, int size, int flag, bool moveOcurred)
             {
                   if (matriz[j][i] == 0)
                   {
-                        changes = push_line_left(matriz[j], i, size);
+                        matriz[j] = push_line_left(matriz[j], i, size);
                         if (matriz[j][i + 1] != 0)
                         {
                               --i;
-                        }
-
-                        if (moveOcurred == false && changes == true)
-                        {
-                              moveOcurred = true;
                         }
                   }
                   else if (matriz[j][i + 1] == 0)
                   {
-                        changes = push_line_left(matriz[j], i + 1, size);
+                        matriz[j] = push_line_left(matriz[j], i + 1, size);
                         if (matriz[j][i + 1] != 0)
                         {
                               --i;
-                        }
-
-                        if (moveOcurred == false && changes == true)
-                        {
-                              moveOcurred = true;
                         }
                   }
                   else
@@ -240,7 +249,6 @@ bool slide_left(int **matriz, int size, int flag, bool moveOcurred)
                               matriz[j][i] *= 2;
                               flag = 1;
                               i--;
-                              moveOcurred = true;
                         }
                         else
                         {
@@ -251,12 +259,12 @@ bool slide_left(int **matriz, int size, int flag, bool moveOcurred)
             flag = 0;
       }
 
-      return moveOcurred;
+      return matriz;
 }
 
-bool slide_right(int **matriz, int size, int flag, bool moveOcurred)
+
+vector<vector<int> > slide_right(vector<vector<int> > matriz, int size, int flag)
 {
-      bool changes;
 
       for (int j = 0; j < size; j++)
       {
@@ -264,28 +272,19 @@ bool slide_right(int **matriz, int size, int flag, bool moveOcurred)
             {
                   if (matriz[j][i] == 0)
                   {
-                        changes = push_line_right(matriz[j], i, size);
+                        matriz[j] = push_line_right(matriz[j], i);
                         if (matriz[j][i - 1] != 0)
                         {
                               ++i;
                         }
 
-                        if (moveOcurred == false && changes == true)
-                        {
-                              moveOcurred = true;
-                        }
                   }
                   else if (matriz[j][i - 1] == 0)
                   {
-                        changes = push_line_right(matriz[j], i - 1, size);
+                        matriz[j] = push_line_right(matriz[j], i - 1);
                         if (matriz[j][i - 1] != 0)
                         {
                               ++i;
-                        }
-
-                        if (moveOcurred == false && changes == true)
-                        {
-                              moveOcurred = true;
                         }
                   }
                   else
@@ -296,7 +295,6 @@ bool slide_right(int **matriz, int size, int flag, bool moveOcurred)
                               matriz[j][i] *= 2;
                               flag = 1;
                               ++i;
-                              moveOcurred = true;
                         }
                         else
                         {
@@ -307,13 +305,11 @@ bool slide_right(int **matriz, int size, int flag, bool moveOcurred)
             flag = 0;
       }
 
-      return moveOcurred;
+      return matriz;
 }
 
-bool push_line_left(int line[], int index, int size)
+vector<int> push_line_left(vector<int> line, int index, int size)
 {
-
-      bool changes = false;
 
       for (int j = index; j < size; j++)
       {
@@ -323,19 +319,16 @@ bool push_line_left(int line[], int index, int size)
                   {
                         line[j] = line[i];
                         line[i] = 0;
-                        changes = true;
                         break;
                   }
             }
       }
 
-      return changes;
+      return line;
 }
 
-bool push_line_right(int line[], int index, int size)
+vector<int> push_line_right(vector<int> line, int index)
 {
-      bool changes = false;
-
       for (int j = index; j > 0; j--)
       {
             for (int i = j - 1; i >= 0; i--)
@@ -344,16 +337,15 @@ bool push_line_right(int line[], int index, int size)
                   {
                         line[j] = line[i];
                         line[i] = 0;
-                        changes = true;
                         break;
                   }
             }
       }
 
-      return changes;
+      return line;
 }
 
-void print_line(int line[], int size)
+void print_line(vector<int> line, int size)
 {
       cout << "........" << endl;
       for (int i = 0; i < size; i++)
@@ -364,7 +356,7 @@ void print_line(int line[], int size)
       cout << endl;
 }
 
-void print_tree(node *n, int nivel)
+void print_tree(node *n, int nivel, int size)
 {
       if (n == NULL)
             return;
@@ -372,16 +364,29 @@ void print_tree(node *n, int nivel)
       {
             cout << "..";
       }
-      cout << n->slide << endl;
+      cout << n->slide <<endl;
+      //printMatrix(n->matriz, size);
 
-      print_tree(n->nodeSon, nivel + 1);
-      print_tree(n->nodeBrother, nivel);
+      print_tree(n->nodeSon, nivel + 1, size);
+      print_tree(n->nodeBrother, nivel, size);
 
       free(n);
 }
 
-void printMatrix(int **matriz, int size)
+void free_tree(node *n, int nivel)
 {
+      if (n == NULL)
+            return;
+
+      free_tree(n->nodeSon, nivel + 1);
+      free_tree(n->nodeBrother, nivel);
+
+      free(n);
+}
+
+void printMatrix(vector< vector<int> > matriz, int size)
+{
+      cout << "......" << endl;
       for (int j = 0; j < size; j++)
       {
             for (int k = 0; k < size; k++)
@@ -392,158 +397,112 @@ void printMatrix(int **matriz, int size)
       }
 }
 
-bool checkSlide(int **matriz, int size, int flag, node *nodeAux, bool moveOcurred)
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int size, int flag, node *nodeAux)
 {
 
       if (nodeAux->slide == 'R')
       {
-            moveOcurred = slide_right(matriz, size, flag, moveOcurred);
+            matriz = slide_right(matriz, size, flag);
       }
 
       else if (nodeAux->slide == 'L')
       {
-            moveOcurred = slide_left(matriz, size, flag, moveOcurred);
+            matriz = slide_left(matriz, size, flag);
       }
 
       else
       {
-            doTranspose(matriz, size);
+            matriz = doTranspose(matriz, size);
 
             if (nodeAux->slide == 'U')
             {
-                  moveOcurred = slide_left(matriz, size, flag, moveOcurred);
+                  matriz = slide_left(matriz, size, flag);
             }
 
             else
             {
-                  moveOcurred = slide_right(matriz, size, flag, moveOcurred);
+                  matriz = slide_right(matriz, size, flag);
             }
 
-            doTranspose(matriz, size);
+            matriz = doTranspose(matriz, size);
       }
-      return moveOcurred;
+      return matriz;
 }
 
 void searchSolution(int size, int flag, node *nodeAux)
 {
+      int duplicates = 0;
 
-      bool moveOcurred = false;
-      int duplicates;
-
-      cout << "NOVO - slide: " << nodeAux->slide << " | limite: " << nodeAux->level << endl;
+      //cout << "NOVO - slide: " << nodeAux->slide << " | limite: " << nodeAux->level << endl;
 
       if (nodeAux->level == limite)
       {
 
-            cout << "ÚLTIMO - slide: " << nodeAux->slide << " | limite: " << nodeAux->level << endl;
-
-            moveOcurred = checkSlide(nodeAux->matriz, size, flag, nodeAux, moveOcurred);
-            duplicates = checkDuplicates(nodeAux->matriz, size);
-
             if (duplicates == 2)
             {
-                  // TODO: ATUALIZAR LIMITE
-                  cout << "GANHEI E SOU - slide: " << nodeAux->slide << " | limite: " << nodeAux->level << endl;
-                  limite = nodeAux->level;
+                  output.push_back(limite);
+                  limite = nodeAux->level - 1;
                   return;
             }
 
             if (nodeAux->nodeBrother != NULL)
             {
-                  cout << "TENHO IRMÃO QUE É - slide: " << nodeAux->nodeBrother->slide << " | limite: " << nodeAux->nodeBrother->level << endl;
                   searchSolution(size, flag, nodeAux->nodeBrother);
                   return;
             }
+            
+            return;
       }
 
       if (nodeAux->nodeSon != NULL)
       {
-            cout << "TENHO FILHO QUE É - slide: " << nodeAux->nodeSon->slide << " | limite: " << nodeAux->nodeSon->level << endl;
             nodeAux->nodeSon->matriz = nodeAux->matriz;
             nodeAux->nodeSon->nodeBrother->matriz = nodeAux->matriz;
             nodeAux->nodeSon->nodeBrother->nodeBrother->matriz = nodeAux->matriz;
             nodeAux->nodeSon->nodeBrother->nodeBrother->nodeBrother->matriz = nodeAux->matriz;
 
-            moveOcurred = checkSlide(nodeAux->nodeSon->matriz, size, flag, nodeAux->nodeSon, moveOcurred);
+            nodeAux->nodeSon->matriz = checkSlide(nodeAux->nodeSon->matriz, size, flag, nodeAux->nodeSon);
             duplicates = checkDuplicates(nodeAux->nodeSon->matriz, size);
-            printMatrix(nodeAux->nodeSon->matriz, size);
-            printMatrix(nodeAux->nodeSon->nodeBrother->matriz, size);
 
-            // ====================================================== VERIFICAÇÕES
-
-            if (duplicates == 1 || !moveOcurred)
+            if (duplicates == 1)
             {
-
                   if (nodeAux->nodeSon->nodeBrother != NULL)
                   {
-
-                        cout << "MERDA MAS IRMÃO QUE É - slide: " << nodeAux->nodeSon->nodeBrother->slide << " | limite: " << nodeAux->nodeSon->nodeBrother->level << endl;
-
-                        moveOcurred = checkSlide(nodeAux->nodeSon->nodeBrother->matriz, size, flag, nodeAux->nodeSon->nodeBrother, moveOcurred);
-                        duplicates = checkDuplicates(nodeAux->nodeSon->nodeBrother->matriz, size);
-                        printMatrix(nodeAux->nodeSon->nodeBrother->matriz, size);
-
-                        // ====================================================== VERIFICAÇÕES
-
-                        if (duplicates == 1 || !moveOcurred)
-                        {
-                              cout << "ACABEI E SOU - slide: " << nodeAux->nodeSon->nodeBrother->slide << " | limite: " << nodeAux->nodeSon->nodeBrother->level << endl;
-                              //cout << "Não há elementos iguais ou é tudo zeros!" << endl;
-                              return;
-                        }
-                        else if (duplicates == 2)
-                        {
-                              cout << "GANHEI E SOU - slide: " << nodeAux->nodeSon->nodeBrother->slide << " | limite: " << nodeAux->nodeSon->nodeBrother->level << endl;
-                              limite = nodeAux->nodeSon->level;
-                              return;
-                        }
-
-                        // =====================================================
-
                         searchSolution(size, flag, nodeAux->nodeSon->nodeBrother);
                   }
             }
 
             else if (duplicates == 2)
             {
-                  cout << "GANHEI - slide: " << nodeAux->nodeSon->slide << " | limite: " << nodeAux->nodeSon->level << endl;
-                  limite = nodeAux->nodeSon->level;
+                  output.push_back(limite);
+                  limite = nodeAux->nodeSon->level - 1;
                   return;
             }
 
             else
             {
                   searchSolution(size, flag, nodeAux->nodeSon);
-                  cout << "Vou sair do tenho filho - slide: " << nodeAux->slide << " | limite: " << nodeAux->level << endl;
             }
       }
 
       if (nodeAux->nodeBrother != NULL)
       {
-            printMatrix(nodeAux->nodeBrother->matriz, size);
-            cout << "TENHO IRMÃO QUE É - slide: " << nodeAux->nodeBrother->slide << " | limite: " << nodeAux->nodeBrother->level << endl;
-
-            moveOcurred = checkSlide(nodeAux->nodeBrother->matriz, size, flag, nodeAux->nodeBrother, moveOcurred);
+            nodeAux->nodeBrother->matriz = checkSlide(nodeAux->nodeBrother->matriz, size, flag, nodeAux->nodeBrother);
             duplicates = checkDuplicates(nodeAux->nodeBrother->matriz, size);
 
-            // ====================================================== VERIFICAÇÕES
-
-            if (duplicates == 1 || !moveOcurred)
+            if (duplicates == 1)
             {
-                  cout << "ACABEI E SOU - slide: " << nodeAux->nodeBrother->slide << " | limite: " << nodeAux->nodeBrother->level << endl;
                   return;
             }
             else if (duplicates == 2)
             {
-                  cout << "GANHEI E SOU - slide: " << nodeAux->nodeBrother->slide << " | limite: " << nodeAux->nodeBrother->level << endl;
-                  limite = nodeAux->nodeBrother->level;
+                  output.push_back(limite);
+                  limite = nodeAux->nodeBrother->level - 1;
                   return;
             }
-
-            // =====================================================
 
             searchSolution(size, flag, nodeAux->nodeBrother);
       }
 
-      print_tree(nodeAux, limite);
+      return;
 }
