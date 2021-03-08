@@ -98,14 +98,14 @@ int main()
 
       cin >> reps;
 
-      //for (int i = 0; i < reps; i++)
-      //{
+      for (int i = 0; i < reps; i++)
+      {
             cin >> size;
             cin >> limite;
 
             doCases(size);
 
-      //}
+      }
 
       for (auto i = teste.begin(); i != teste.end(); ++i) 
             cout << *i << endl; 
