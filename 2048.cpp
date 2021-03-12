@@ -2,152 +2,89 @@
 #include <algorithm>
 #include <set>
 #include <vector>
+#include <stack> 
 using namespace std;
 
 int limite;
 vector<int> output;
-vector<string> teste;
+stack<vector<vector <int> > > queueMatrix;
+vector<string> test;
 
-struct Node
-{
-      char slide;
-      int numZeros;
-      int level;
-      vector<vector<int> > matriz;
-      Node *nodeFather;
-      Node *nodeBrother;
-      Node *nodeSon;
-};
 
-typedef struct Node node;
+bool doCase(int slide, int flag, int level);
 
-node *insertNode(char slide, int level, node *nodeFather, node *nodeSon)
-{
-      node *auxNode = (node *)malloc(sizeof(node));
-      auxNode->slide = slide;
-      auxNode->level = level;
-      auxNode->nodeFather = nodeFather;
-      auxNode->nodeSon = nodeSon;
-      auxNode->nodeBrother = NULL;
-
-      return auxNode;
-}
-
-node * buildTree(node *raiz, int level, int nodeLevel, int brotherCount)
-{
-
-      node * auxNode = NULL;
-
-      if (nodeLevel == level)
-      {
-            return raiz;
-      }
-
-      if (raiz->nodeSon == NULL && raiz->level + 1 != level)
-      {
-            auxNode = insertNode('L', raiz->level + 1, raiz, NULL);
-            raiz->nodeSon = buildTree(auxNode, level, auxNode->level, 0);
-      }
-
-      if (raiz->nodeFather != NULL)
-      {
-            auxNode = insertNode('R', raiz->level, NULL, NULL);
-            raiz->nodeBrother = buildTree(auxNode, level, auxNode->level, 1);
-            brotherCount = 0;
-      }
-
-      else if (raiz->nodeFather == NULL && brotherCount != 3 && raiz->level != 0)
-      {
-            if (raiz->slide == 'L')
-            {
-                  auxNode = insertNode('R', raiz->level, NULL, NULL);
-            }
-            else if (raiz->slide == 'R')
-            {
-                  auxNode = insertNode('U', raiz->level, NULL, NULL);
-            }
-            if (raiz->slide == 'U')
-            {
-                  auxNode = insertNode('D', raiz->level, NULL, NULL);
-            }
-
-            raiz->nodeBrother = buildTree(auxNode, level, auxNode->level, ++brotherCount);
-      }
-
-      return raiz;
-}
-
-void doCases(int size);
 vector< vector<int> > inputMatrix(int size);
-vector< vector<int> > doTranspose(vector< vector<int> > matriz, int size);
-int checkDuplicates(vector< vector<int> > matriz, int size);
-vector< vector<int> > slide_left(vector< vector<int> > matriz, int size, int flag);
-vector< vector<int> > slide_right(vector< vector<int> > matriz, int size, int flag);
-vector<int> push_line_left(vector<int> line, int index, int size);
+
+int checkDuplicates(vector< vector<int> > matriz);
+bool badSlide(int slide, int flag);
+
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int flag, int slide);
+vector< vector<int> > doTranspose(vector< vector<int> > matriz);
+
+vector< vector<int> > slide_left(vector< vector<int> > matriz, int flag);
+vector< vector<int> > slide_right(vector< vector<int> > matriz, int flag);
+vector<int> push_line_left(vector<int> line, int index);
 vector<int> push_line_right(vector<int>, int index);
-void print_line(vector<int>, int size);
-void print_tree(node *n, int nivel);
-void printMatrix(vector< vector<int> > matriz, int size);
-vector< vector<int> > checkSlide(vector< vector<int> > matriz, int size, int flag, node *nodeAux);
-void searchSolution(int size, int flag, node *nodeAux);
-void free_tree(node *n, int nivel);
+
+void print_line(vector<int>);
+void printMatrix(vector< vector<int> > matriz);
 
 int main()
 {
       int reps, size;
-
       cin >> reps;
+      
 
       for (int i = 0; i < reps; i++)
       {
+            vector< vector<int> > matriz;
             cin >> size;
             cin >> limite;
 
-            doCases(size);
+            matriz = inputMatrix(size);
+            queueMatrix.push(matriz);
+            doCase(0, 0, 0);
+
+            if (output.size() == 0) {
+                  test.push_back("no solution");
+            }
+            else {
+                  test.push_back(to_string(*min_element(output.begin(), output.end())));
+            }
+
+            output.clear();
 
       }
 
-      for (auto i = teste.begin(); i != teste.end(); ++i) 
+      for (auto i = test.begin(); i != test.end(); ++i) 
             cout << *i << endl; 
       
-      teste.clear();
+      test.clear();
       return 0;
 }
 
-void doCases(int size) {
+bool doCase(int slide, int flag, int level) {
 
-      node * nodeAux = NULL;
-      int flag = 0;
-      int duplicates;
-
-      nodeAux = insertNode('M', 0, NULL, NULL);
-      nodeAux = buildTree(nodeAux, limite + 1, nodeAux->level, 0);
-
-      nodeAux->matriz = inputMatrix(size);
-
-      duplicates = checkDuplicates(nodeAux->matriz, size);
-
-      if (duplicates == 1)
-      {
-            teste.push_back("no solution");
+      if (badSlide(slide, flag) || level > limite) {           // teste de rejeição
+            return false;
       }
-      else if (duplicates == 2)
-      {
-            teste.push_back(0);
-      }
-      else {
-            searchSolution(size, flag, nodeAux);
 
-            if (output.size() == 0) {
-            teste.push_back("no solution");
+      if (checkDuplicates(queueMatrix.top()) == 2) {
+            output.push_back(level);
+            limite = level;
+            return false;                       // base case
+      }
+
+      for(int i = 1; i <= 4; i++) {
+            if (doCase(i, flag, level + 1)) {
+                  return true;
             }
             else {
-                  teste.push_back(to_string(*min_element(output.begin(), output.end())));
+                  queueMatrix.pop();
             }
       }
 
-      output.clear();
-      free_tree(nodeAux, limite);
+      return false;
 }
 
 vector< vector<int> > inputMatrix(int size)
@@ -170,14 +107,111 @@ vector< vector<int> > inputMatrix(int size)
     return matriz;
 }
 
+bool badSlide(int slide, int flag) {
 
-vector< vector<int> > doTranspose(vector< vector<int> > matriz, int size)
+      vector< vector<int> > matrizAux;
+
+      if (slide == 0) {
+            return false;
+      }
+
+      // 1º fazer o slide
+      matrizAux = checkSlide(queueMatrix.top(), flag, slide);
+
+      // 2º verificar se teve movimentos
+
+      if (matrizAux == queueMatrix.top()) {
+            queueMatrix.push(matrizAux);
+            return true;
+      }
+
+      /*// 3º verificar se a matriz só tem zeros
+      if (checkDuplicates(queueMatrix.top()) == -1 || checkDuplicates(queueMatrix.top()) == 3) {
+            queueMatrix.push(matrizAux);
+            return true;
+      }*/
+      
+      queueMatrix.push(matrizAux);
+      return false;
+}
+
+int checkDuplicates(vector< vector<int> > matriz)
+{
+      int num = matriz.size();
+      set<int> table;
+
+      for (int i = 0; i < num; i++)
+      {
+            for (int j = 0; j < num; j++)
+            {
+                  if (matriz[i][j] != 0)
+                  {
+                        if (table.find(matriz[i][j]) != table.end())
+                        {
+                              table.clear();
+                              return -1; // HAS DUPLICATES
+                        }
+                        table.insert(matriz[i][j]);
+                  }
+            }
+      }
+
+      if (table.size() == 0) // ALL ZEROS
+      {
+            table.clear();
+            return 3;
+      }
+
+      if (table.size() == 1) // WIN
+      {
+            table.clear();
+            return 2;
+      }
+
+      table.clear();
+      return 1;
+}
+
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int flag, int slide)
+{
+      if (slide == 1)
+      {
+            matriz = slide_right(matriz, flag);
+      }
+
+      else if (slide == 2)
+      {
+            matriz = slide_left(matriz, flag);
+      }
+
+      else
+      {
+            matriz = doTranspose(matriz);
+
+            if (slide == 3)
+            {
+                  matriz = slide_left(matriz, flag);
+            }
+
+            else if (slide == 4)
+            {
+                  matriz = slide_right(matriz, flag);
+            }
+
+            matriz = doTranspose(matriz);
+      }
+
+      return matriz;
+}
+
+vector< vector<int> > doTranspose(vector< vector<int> > matriz)
 {
       int aux;
+      int num = matriz.size();
 
-      for (int i = 0; i < size; ++i)
+      for (int i = 0; i < num; ++i)
       {
-            for (int j = i; j < size; ++j)
+            for (int j = i; j < num; ++j)
             {
                   aux = matriz[j][i];
                   matriz[j][i] = matriz[i][j];
@@ -188,48 +222,18 @@ vector< vector<int> > doTranspose(vector< vector<int> > matriz, int size)
       return matriz;
 }
 
-int checkDuplicates(vector< vector<int> > matriz, int size)
+
+vector<vector<int> > slide_left(vector< vector<int> > matriz, int flag)
 {
+      int num = matriz.size();
 
-      set<int> table;
-
-      for (int i = 0; i < size; ++i)
+      for (int j = 0; j < num; j++)
       {
-            for (int j = 0; j < size; ++j)
-            {
-                  if (matriz[i][j] != 0)
-                  {
-                        if (table.find(matriz[i][j]) != table.end())
-                        {
-                              table.clear();
-                              return -1;
-                        }
-                        table.insert(matriz[i][j]);
-                  }
-            }
-      }
-
-      if (table.size() == 1)
-      {
-            table.clear();
-            return 2;
-      }
-
-      table.clear();
-      return 1;
-}
-
-
-vector<vector<int> > slide_left(vector< vector<int> > matriz, int size, int flag)
-{
-
-      for (int j = 0; j < size; j++)
-      {
-            for (int i = 0; i < size - 1; i++)
+            for (int i = 0; i < num - 1; i++)
             {
                   if (matriz[j][i] == 0)
                   {
-                        matriz[j] = push_line_left(matriz[j], i, size);
+                        matriz[j] = push_line_left(matriz[j], i);
                         if (matriz[j][i + 1] != 0)
                         {
                               --i;
@@ -237,7 +241,7 @@ vector<vector<int> > slide_left(vector< vector<int> > matriz, int size, int flag
                   }
                   else if (matriz[j][i + 1] == 0)
                   {
-                        matriz[j] = push_line_left(matriz[j], i + 1, size);
+                        matriz[j] = push_line_left(matriz[j], i + 1);
                         if (matriz[j][i + 1] != 0)
                         {
                               --i;
@@ -265,12 +269,13 @@ vector<vector<int> > slide_left(vector< vector<int> > matriz, int size, int flag
 }
 
 
-vector<vector<int> > slide_right(vector<vector<int> > matriz, int size, int flag)
+vector<vector<int> > slide_right(vector<vector<int> > matriz, int flag)
 {
+      int num = matriz.size();
 
-      for (int j = 0; j < size; j++)
+      for (int j = 0; j < num; j++)
       {
-            for (int i = size - 1; i > 0; i--)
+            for (int i = num - 1; i > 0; i--)
             {
                   if (matriz[j][i] == 0)
                   {
@@ -310,12 +315,13 @@ vector<vector<int> > slide_right(vector<vector<int> > matriz, int size, int flag
       return matriz;
 }
 
-vector<int> push_line_left(vector<int> line, int index, int size)
+vector<int> push_line_left(vector<int> line, int index)
 {
+      int num = line.size();
 
-      for (int j = index; j < size; j++)
+      for (int j = index; j < num; j++)
       {
-            for (int i = j + 1; i < size; i++)
+            for (int i = j + 1; i < num; i++)
             {
                   if (line[i] != 0)
                   {
@@ -347,10 +353,12 @@ vector<int> push_line_right(vector<int> line, int index)
       return line;
 }
 
-void print_line(vector<int> line, int size)
+void print_line(vector<int> line)
 {
+      int num = line.size();
+
       cout << "........" << endl;
-      for (int i = 0; i < size; i++)
+      for (int i = 0; i < num; i++)
       {
             cout << line[i] << " ";
       }
@@ -358,128 +366,17 @@ void print_line(vector<int> line, int size)
       cout << endl;
 }
 
-void print_tree(node * n, int nivel)
+void printMatrix(vector< vector<int> > matriz)
 {
-      if (n == NULL)
-            return;
+      int num = matriz.size();
 
-      for (int i = 0; i < nivel; ++i)
-      {
-            cout << "..";
-      }
-      cout << n->slide << endl;
-
-      if (n->nodeSon != NULL) {
-            print_tree(n->nodeSon, nivel + 1);
-      }
-
-      if (n->nodeBrother != NULL) {
-            print_tree(n->nodeBrother, nivel);
-      }
-
-}
-
-void free_tree(node * n, int nivel)
-{
-      if (n == NULL)
-            return;
-
-      if (n->nodeSon != NULL) {
-            free_tree(n->nodeSon, nivel + 1);
-      }
-
-      if (n->nodeBrother != NULL) {
-            free_tree(n->nodeBrother, nivel);
-      }
-
-      //cout << "Im free slide: " << n->slide << " | level: " << n->level << endl;
-      free(n);
-}
-
-void printMatrix(vector< vector<int> > matriz, int size)
-{
       cout << "......" << endl;
-      for (int j = 0; j < size; j++)
+      for (int j = 0; j < num; j++)
       {
-            for (int k = 0; k < size; k++)
+            for (int k = 0; k < num; k++)
             {
                   cout << matriz[j][k] << " ";
             }
             cout << endl;
       }
-}
-
-vector< vector<int> > checkSlide(vector< vector<int> > matriz, int size, int flag, node *nodeAux)
-{
-
-      if (nodeAux->slide == 'R')
-      {
-            matriz = slide_right(matriz, size, flag);
-      }
-
-      else if (nodeAux->slide == 'L')
-      {
-            matriz = slide_left(matriz, size, flag);
-      }
-
-      else
-      {
-            matriz = doTranspose(matriz, size);
-
-            if (nodeAux->slide == 'U')
-            {
-                  matriz = slide_left(matriz, size, flag);
-            }
-
-            else if (nodeAux->slide == 'D')
-            {
-                  matriz = slide_right(matriz, size, flag);
-            }
-
-            matriz = doTranspose(matriz, size);
-      }
-      return matriz;
-}
-
-void searchSolution(int size, int flag, node * nodeAux) {
-
-      int duplicates = 0;
-
-      nodeAux->matriz = checkSlide(nodeAux->matriz, size, flag, nodeAux);
-      duplicates = checkDuplicates(nodeAux->matriz, size);
-
-      if (duplicates == 2)
-      {
-            output.push_back(nodeAux->level);
-            limite = nodeAux->level;
-            //cout << "Win" << endl;
-            return;
-      }
-
-      if (nodeAux->level == limite) {
-            //cout << "Ultimo" << endl;
-
-            if (nodeAux->nodeBrother != NULL)
-            {
-                  searchSolution(size, flag, nodeAux->nodeBrother);
-            }
-            
-            return;
-      }
-
-      if (nodeAux->nodeSon != NULL) {
-            //cout << "Filho" << endl;
-            nodeAux->nodeSon->matriz = nodeAux->matriz;
-            nodeAux->nodeSon->nodeBrother->matriz = nodeAux->matriz;
-            nodeAux->nodeSon->nodeBrother->nodeBrother->matriz = nodeAux->matriz;
-            nodeAux->nodeSon->nodeBrother->nodeBrother->nodeBrother->matriz = nodeAux->matriz;
-            searchSolution(size, flag, nodeAux->nodeSon);
-      }
-
-      if (nodeAux->nodeBrother != NULL) {
-            //cout << "Irmão" << endl;
-            searchSolution(size, flag, nodeAux->nodeBrother);
-      }
-
-
 }
