@@ -3,7 +3,9 @@
 #include <set>
 #include <vector>
 #include <stack> 
+#include <chrono>
 using namespace std;
+using namespace std::chrono;
 
 int limite;
 vector<int> output;
@@ -23,8 +25,8 @@ vector< vector<int> > doTranspose(vector< vector<int> > matriz);
 
 vector< vector<int> > slide_left(vector< vector<int> > matriz, int flag);
 vector< vector<int> > slide_right(vector< vector<int> > matriz, int flag);
-vector<int> push_line_left(vector<int> line, int index);
-vector<int> push_line_right(vector<int>, int index);
+vector<int> push_line_left(vector<int> line);
+vector<int> push_line_right(vector<int> line);
 
 void print_line(vector<int>);
 void printMatrix(vector< vector<int> > matriz);
@@ -34,6 +36,7 @@ int main()
       int reps, size;
       cin >> reps;
       
+      //auto start = high_resolution_clock::now(); 
 
       for (int i = 0; i < reps; i++)
       {
@@ -43,6 +46,7 @@ int main()
 
             matriz = inputMatrix(size);
             queueMatrix.push(matriz);
+      
             doCase(0, 0, 0);
 
             if (output.size() == 0) {
@@ -59,6 +63,11 @@ int main()
             cout << *i << endl; 
       
       test.clear();
+
+      /*auto stop = high_resolution_clock::now(); 
+      auto duration = duration_cast<milliseconds>(stop - start); 
+      cout << duration.count() << endl;*/
+
       return 0;
 }
 
@@ -228,37 +237,20 @@ vector<vector<int> > slide_left(vector< vector<int> > matriz, int flag)
 
       for (int j = 0; j < num; j++)
       {
-            for (int i = 0; i < num - 1; i++)
+            matriz[j] = push_line_left(matriz[j]);
+
+            for (int i = num - 1; i > 0; i--)
             {
-                  if (matriz[j][i] == 0)
+                  
+                  if (matriz[j][i] == matriz[j][i - 1] && flag == 0)
                   {
-                        matriz[j] = push_line_left(matriz[j], i);
-                        if (matriz[j][i + 1] != 0)
-                        {
-                              --i;
-                        }
-                  }
-                  else if (matriz[j][i + 1] == 0)
-                  {
-                        matriz[j] = push_line_left(matriz[j], i + 1);
-                        if (matriz[j][i + 1] != 0)
-                        {
-                              --i;
-                        }
+                        matriz[j][i] = 0;
+                        matriz[j][i - 1] *= 2;
+                        flag = 1;
                   }
                   else
                   {
-                        if (matriz[j][i] == matriz[j][i + 1] && flag == 0)
-                        {
-                              matriz[j][i + 1] = 0;
-                              matriz[j][i] *= 2;
-                              flag = 1;
-                              i--;
-                        }
-                        else
-                        {
-                              flag = 0;
-                        }
+                        flag = 0;
                   }
             }
             flag = 0;
@@ -274,38 +266,19 @@ vector<vector<int> > slide_right(vector<vector<int> > matriz, int flag)
 
       for (int j = 0; j < num; j++)
       {
-            for (int i = num - 1; i > 0; i--)
-            {
-                  if (matriz[j][i] == 0)
-                  {
-                        matriz[j] = push_line_right(matriz[j], i);
-                        if (matriz[j][i - 1] != 0)
-                        {
-                              ++i;
-                        }
+            matriz[j] = push_line_right(matriz[j]);
 
-                  }
-                  else if (matriz[j][i - 1] == 0)
+            for (int i = 0; i < num - 1; i++)
+            {
+                  if (matriz[j][i] == matriz[j][i + 1] && flag == 0)
                   {
-                        matriz[j] = push_line_right(matriz[j], i - 1);
-                        if (matriz[j][i - 1] != 0)
-                        {
-                              ++i;
-                        }
+                        matriz[j][i] = 0;
+                        matriz[j][i + 1] *= 2;
+                        flag = 1;
                   }
                   else
                   {
-                        if (matriz[j][i] == matriz[j][i - 1] && flag == 0)
-                        {
-                              matriz[j][i - 1] = 0;
-                              matriz[j][i] *= 2;
-                              flag = 1;
-                              ++i;
-                        }
-                        else
-                        {
-                              flag = 0;
-                        }
+                        flag = 0;
                   }
             }
             flag = 0;
@@ -314,19 +287,21 @@ vector<vector<int> > slide_right(vector<vector<int> > matriz, int flag)
       return matriz;
 }
 
-vector<int> push_line_left(vector<int> line, int index)
+vector<int> push_line_left(vector<int> line)
 {
       int num = line.size();
 
-      for (int j = index; j < num; j++)
+      for (int j = 0; j < num; j++)
       {
             for (int i = j + 1; i < num; i++)
             {
-                  if (line[i] != 0)
-                  {
-                        line[j] = line[i];
-                        line[i] = 0;
-                        break;
+                  if (line[j] == 0) {
+                        if (line[i] != 0)
+                        {
+                              line[j] = line[i];
+                              line[i] = 0;
+                              break;
+                        }
                   }
             }
       }
@@ -334,17 +309,21 @@ vector<int> push_line_left(vector<int> line, int index)
       return line;
 }
 
-vector<int> push_line_right(vector<int> line, int index)
+vector<int> push_line_right(vector<int> line)
 {
-      for (int j = index; j > 0; j--)
+      int max = line.size();
+
+      for (int j = max - 1; j > 0; j--)
       {
             for (int i = j - 1; i >= 0; i--)
             {
-                  if (line[i] != 0)
-                  {
-                        line[j] = line[i];
-                        line[i] = 0;
-                        break;
+                  if (line[j] == 0) {
+                        if (line[i] != 0)
+                        {
+                              line[j] = line[i];
+                              line[i] = 0;
+                              break;
+                        }
                   }
             }
       }
