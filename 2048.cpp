@@ -17,7 +17,7 @@ bool doCase(int slide, int flag, int level);
 
 vector< vector<int> > inputMatrix(int size);
 
-int checkDuplicates(vector< vector<int> > matriz);
+bool checkDuplicates(vector< vector<int> > matriz);
 bool badSlide(int slide, int flag);
 
 vector< vector<int> > checkSlide(vector< vector<int> > matriz, int flag, int slide);
@@ -25,8 +25,8 @@ vector< vector<int> > doTranspose(vector< vector<int> > matriz);
 
 vector< vector<int> > slide_left(vector< vector<int> > matriz, int flag);
 vector< vector<int> > slide_right(vector< vector<int> > matriz, int flag);
-vector<int> push_line_left(vector<int> line);
-vector<int> push_line_right(vector<int> line);
+vector<int> push_line_left(vector<int> line, int index);
+vector<int> push_line_right(vector<int> line, int index);
 
 void print_line(vector<int>);
 void printMatrix(vector< vector<int> > matriz);
@@ -77,7 +77,7 @@ bool doCase(int slide, int flag, int level) {
             return false;
       }
 
-      if (checkDuplicates(queueMatrix.top()) == 2) {
+      if (checkDuplicates(queueMatrix.top())) {
             output.push_back(level);
             limite = level;
             return false;                       // base case
@@ -132,52 +132,27 @@ bool badSlide(int slide, int flag) {
             queueMatrix.push(matrizAux);
             return true;
       }
-
-      /*// 3º verificar se a matriz só tem zeros
-      if (checkDuplicates(queueMatrix.top()) == -1 || checkDuplicates(queueMatrix.top()) == 3) {
-            queueMatrix.push(matrizAux);
-            return true;
-      }*/
       
       queueMatrix.push(matrizAux);
       return false;
 }
 
-int checkDuplicates(vector< vector<int> > matriz)
+bool checkDuplicates(vector< vector<int> > matriz)
 {
       int num = matriz.size();
-      set<int> table;
+      int res = 0;
 
       for (int i = 0; i < num; i++)
       {
-            for (int j = 0; j < num; j++)
-            {
-                  if (matriz[i][j] != 0)
-                  {
-                        if (table.find(matriz[i][j]) != table.end())
-                        {
-                              table.clear();
-                              return -1; // HAS DUPLICATES
-                        }
-                        table.insert(matriz[i][j]);
-                  }
-            }
+            res += count(matriz[i].begin(), matriz[i].end(), 0);
       }
 
-      if (table.size() == 0) // ALL ZEROS
+      if (res == num * num - 1) // ALL ZEROS
       {
-            table.clear();
-            return 3;
+            return true;
       }
 
-      if (table.size() == 1) // WIN
-      {
-            table.clear();
-            return 2;
-      }
-
-      table.clear();
-      return 1;
+      return false;
 }
 
 vector< vector<int> > checkSlide(vector< vector<int> > matriz, int flag, int slide)
@@ -230,27 +205,43 @@ vector< vector<int> > doTranspose(vector< vector<int> > matriz)
       return matriz;
 }
 
-
 vector<vector<int> > slide_left(vector< vector<int> > matriz, int flag)
 {
       int num = matriz.size();
 
       for (int j = 0; j < num; j++)
       {
-            matriz[j] = push_line_left(matriz[j]);
-
-            for (int i = num - 1; i > 0; i--)
+            for (int i = 0; i < num - 1; i++)
             {
-                  
-                  if (matriz[j][i] == matriz[j][i - 1] && flag == 0)
+                  if (matriz[j][i] == 0)
                   {
-                        matriz[j][i] = 0;
-                        matriz[j][i - 1] *= 2;
-                        flag = 1;
+                        matriz[j] = push_line_left(matriz[j], i);
+                        if (matriz[j][i + 1] != 0)
+                        {
+                              --i;
+                        }
+                  }
+                  else if (matriz[j][i + 1] == 0)
+                  {
+                        matriz[j] = push_line_left(matriz[j], i + 1);
+                        if (matriz[j][i + 1] != 0)
+                        {
+                              --i;
+                        }
                   }
                   else
                   {
-                        flag = 0;
+                        if (matriz[j][i] == matriz[j][i + 1] && flag == 0)
+                        {
+                              matriz[j][i + 1] = 0;
+                              matriz[j][i] *= 2;
+                              flag = 1;
+                              i--;
+                        }
+                        else
+                        {
+                              flag = 0;
+                        }
                   }
             }
             flag = 0;
@@ -266,19 +257,38 @@ vector<vector<int> > slide_right(vector<vector<int> > matriz, int flag)
 
       for (int j = 0; j < num; j++)
       {
-            matriz[j] = push_line_right(matriz[j]);
-
-            for (int i = 0; i < num - 1; i++)
+            for (int i = num - 1; i > 0; i--)
             {
-                  if (matriz[j][i] == matriz[j][i + 1] && flag == 0)
+                  if (matriz[j][i] == 0)
                   {
-                        matriz[j][i] = 0;
-                        matriz[j][i + 1] *= 2;
-                        flag = 1;
+                        matriz[j] = push_line_right(matriz[j], i);
+                        if (matriz[j][i - 1] != 0)
+                        {
+                              ++i;
+                        }
+
+                  }
+                  else if (matriz[j][i - 1] == 0)
+                  {
+                        matriz[j] = push_line_right(matriz[j], i - 1);
+                        if (matriz[j][i - 1] != 0)
+                        {
+                              ++i;
+                        }
                   }
                   else
                   {
-                        flag = 0;
+                        if (matriz[j][i] == matriz[j][i - 1] && flag == 0)
+                        {
+                              matriz[j][i - 1] = 0;
+                              matriz[j][i] *= 2;
+                              flag = 1;
+                              ++i;
+                        }
+                        else
+                        {
+                              flag = 0;
+                        }
                   }
             }
             flag = 0;
@@ -287,21 +297,19 @@ vector<vector<int> > slide_right(vector<vector<int> > matriz, int flag)
       return matriz;
 }
 
-vector<int> push_line_left(vector<int> line)
+vector<int> push_line_left(vector<int> line, int index)
 {
       int num = line.size();
 
-      for (int j = 0; j < num; j++)
+      for (int j = index; j < num; j++)
       {
             for (int i = j + 1; i < num; i++)
             {
-                  if (line[j] == 0) {
-                        if (line[i] != 0)
-                        {
-                              line[j] = line[i];
-                              line[i] = 0;
-                              break;
-                        }
+                  if (line[i] != 0)
+                  {
+                        line[j] = line[i];
+                        line[i] = 0;
+                        break;
                   }
             }
       }
@@ -309,21 +317,17 @@ vector<int> push_line_left(vector<int> line)
       return line;
 }
 
-vector<int> push_line_right(vector<int> line)
+vector<int> push_line_right(vector<int> line, int index)
 {
-      int max = line.size();
-
-      for (int j = max - 1; j > 0; j--)
+      for (int j = index; j > 0; j--)
       {
             for (int i = j - 1; i >= 0; i--)
             {
-                  if (line[j] == 0) {
-                        if (line[i] != 0)
-                        {
-                              line[j] = line[i];
-                              line[i] = 0;
-                              break;
-                        }
+                  if (line[i] != 0)
+                  {
+                        line[j] = line[i];
+                        line[i] = 0;
+                        break;
                   }
             }
       }
