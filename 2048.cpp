@@ -1,144 +1,304 @@
+// 1 - right
+// 2 - up
+// 3 - left
+// 4 - down
+
 #include <iostream>
 #include <algorithm>
 #include <set>
 #include <vector>
-#include <stack>
+#include <stack> 
 #include <chrono>
-#include <cmath>
-
 using namespace std;
 using namespace std::chrono;
 
 int limite;
 vector<int> output;
-stack<vector<vector<int> > > queueMatrix;
+vector<vector<int> > first_matrix;
+stack<vector<vector <int> > > queueMatrix;
 vector<string> test;
 
+void doCasePrincipal();
 bool doCase(int slide, int level);
 
-vector<vector<int> > inputMatrix(int size);
+vector< vector<int> > inputMatrix(int size);
 
-int checkDuplicates(vector<vector<int> > matriz);
+int checkDuplicates(vector< vector<int> > matriz);
 bool badSlide(int slide);
+int checkZeros(vector< vector<int> > matriz);
 
-vector<vector<int> > checkSlide(vector<vector<int> > matriz, int slide);
-vector<vector<int> > doTranspose(vector<vector<int> > matriz);
+int bestWay(vector< vector<int> > matriz);
+vector<int> performTest(vector< vector<int> > matriz, int firstSlide);
+int checkScore(vector< vector<int> > matriz);
 
-vector<vector<int> > slide_left(vector<vector<int> > matriz);
-vector<int> shift_left(vector <int> line);
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide);
+vector< vector<int> > doTranspose(vector< vector<int> > matriz);
 
-vector<vector<int> > slide_right(vector<vector<int> > matriz);
-vector<int> shift_right(vector <int> line);
+vector< vector<int> > slide_left(vector< vector<int> > matriz);
+vector<int> push_line_left(vector<int> line, int index);
+
+vector< vector<int> > slide_right(vector< vector<int> > matriz);
+vector<int> push_line_right(vector<int>, int index);
+
+vector<vector<int> > slide_down(vector<vector<int> > matriz);
+vector<vector<int> > push_line_down(vector<vector<int> > matriz, int column, int index);
+
+vector<vector<int> > slide_up(vector<vector<int> > matriz);
+vector<vector<int> > push_line_up(vector<vector<int> > matriz, int column, int index);
 
 void print_line(vector<int>);
-void printMatrix(vector<vector<int> > matriz);
+void printMatrix(vector< vector<int> > matriz);
 
 int main()
 {
-      int reps, size;
+      int reps, size, check;
       cin >> reps;
 
-      auto start = high_resolution_clock::now();
+      auto start = high_resolution_clock::now(); 
 
       for (int i = 0; i < reps; i++)
       {
-            vector<vector<int> > matriz;
+            vector< vector<int> > matriz;
             cin >> size;
             cin >> limite;
 
-            matriz = inputMatrix(size);
-            queueMatrix.push(matriz);
+            limite++;
 
-            doCase(0, 0);
-
-            if (output.size() == 0)
-            {
+            if ((size < 1 || size > 20) || (limite < 1 || limite > 50)) {
                   test.push_back("no solution");
+                  matriz = inputMatrix(size);
             }
-            else
-            {
-                  test.push_back(to_string(*min_element(output.begin(), output.end())));
-            }
+            else {
+                  matriz = inputMatrix(size);
+                  first_matrix = matriz;
 
-            output.clear();
+                  check = checkDuplicates(matriz);
+
+                  if (check == 0 || check == 1) {
+                        test.push_back("no solution");
+                  }
+                  else {
+                        queueMatrix.push(matriz);
+
+                        doCasePrincipal();
+
+                        if (output.size() == 0) {
+                              test.push_back("no solution");
+                        }
+                        else {
+                              test.push_back(to_string(*min_element(output.begin(), output.end())));
+                        } 
+
+                        output.clear();
+                  }
+            }
       }
 
-      for (auto i = test.begin(); i != test.end(); ++i)
-            cout << *i << endl;
-
-      test.clear();
-
-      auto stop = high_resolution_clock::now();
-      auto duration = duration_cast<milliseconds>(stop - start);
+      for (auto i = test.begin(); i != test.end(); ++i) 
+            cout << *i << endl; 
+      
+      auto stop = high_resolution_clock::now(); 
+      auto duration = duration_cast<milliseconds>(stop - start); 
       cout << duration.count() << endl;
-
+      
+      test.clear();
       return 0;
 }
 
-bool doCase(int slide, int level)
+vector< vector<int> > inputMatrix(int size)
 {
+      int aux;
+      vector< vector<int> > matriz;
 
-      if (badSlide(slide) || level > limite)
-      { // teste de rejeição
+      for (int i = 0; i < size; i++) { 
+
+        vector<int> row; 
+  
+        for (int j = 0; j < size; j++) { 
+            cin >> aux;
+            row.push_back(aux); 
+        } 
+
+        matriz.push_back(row); 
+    }
+
+    return matriz;
+}
+
+void doCasePrincipal(){
+
+      for (int i = 0; i < 4; i++) {
+            doCase(i, 1);
+            queueMatrix.push(first_matrix);
+      }
+
+}
+
+bool doCase(int slide, int level) {
+
+      //cout << "Level: " << level << endl;
+
+      if (badSlide(slide) || level >= limite) {             // teste de rejeição
             return false;
       }
 
-      if (checkDuplicates(queueMatrix.top()) == 2)
-      {
-            output.push_back(level);
-            limite = level;
-            return false; // base case
+      int check = checkDuplicates(queueMatrix.top());
+
+      if (check == 1) {
+            return false;                                   // teste de rejeição
       }
 
-      for (int i = 1; i <= 4; i++)
-      {
-            if (doCase(i, level + 1))
-            {
-                  return true;
-            }
-            else
-            {
-                  queueMatrix.pop();
-            }
+      if (check == 2) {
+            output.push_back(level);
+            limite = level;
+            return false;                                   // base case
       }
+
+      if (doCase(bestWay(queueMatrix.top()), level + 1)) {
+            return true;
+      }
+      else {
+            queueMatrix.pop();
+      } 
 
       return false;
 }
 
-vector<vector<int> > inputMatrix(int size)
-{
-      int aux;
-      vector<vector<int> > matriz;
+int bestWay(vector< vector<int> > matriz) {           // Monte-Carlo Algorithm
 
-      for (int i = 0; i < size; i++)
-      {
+      int bestSlide = 0;
+      int bestScore = 0;
+      vector<int> moveCombination;
+      vector<vector<int> > matrizAux = matriz;
 
-            vector<int> row;
-
-            for (int j = 0; j < size; j++)
-            {
-                  cin >> aux;
-                  row.push_back(aux);
+      // L
+      for (int i = 0; i < 4; i++) {
+            moveCombination = performTest(matrizAux, 3);
+            if (moveCombination[0] != -1) {
+                  if (bestScore < moveCombination[moveCombination.size() - 1]) {
+                        bestScore = moveCombination[moveCombination.size() - 1];
+                        bestSlide = moveCombination[0];
+                  }
             }
-
-            matriz.push_back(row);
+            moveCombination.clear();
       }
 
-      return matriz;
+      // R
+      for (int i = 0; i < 4; i++) {
+            moveCombination = performTest(matrizAux, 1);
+            if (moveCombination[0] != -1) {
+                  if (bestScore < moveCombination[moveCombination.size() - 1]) {
+                        bestScore = moveCombination[moveCombination.size() - 1];
+                        bestSlide = moveCombination[0]; 
+                  }
+            }
+            moveCombination.clear();
+      }
+
+      // U
+      for (int i = 0; i < 4; i++) {
+            moveCombination = performTest(matrizAux, 2);
+            if (moveCombination[0] != -1) {
+                  if (bestScore < moveCombination[moveCombination.size() - 1]) {
+                        bestScore = moveCombination[moveCombination.size() - 1];
+                        bestSlide = moveCombination[0];
+                  }
+            }
+            moveCombination.clear();
+      }
+
+      // D
+      for (int i = 0; i < 4; i++) {
+            moveCombination = performTest(matrizAux, 4);
+            if (moveCombination[0] != -1) {
+                  if (bestScore < moveCombination[moveCombination.size() - 1]) {
+                        bestScore = moveCombination[moveCombination.size() - 1];
+                        bestSlide = moveCombination[0];
+                  }
+            }
+            moveCombination.clear();
+      }
+
+      moveCombination.clear();
+      matrizAux.clear();
+      return bestSlide;
+}
+
+vector<int> performTest(vector< vector<int> > matriz, int firstSlide) {
+
+      vector<int> moveCombination;
+      int zeros = 0;
+      vector<vector<int> > matrizAux = matriz;
+      int randomMove;
+
+      if(firstSlide == 1){
+            matrizAux = slide_right(matrizAux);
+      }
+      if(firstSlide == 2){
+            matrizAux = slide_up(matrizAux);
+      }
+      if(firstSlide == 3){
+            matrizAux = slide_left(matrizAux);
+      }
+      if(firstSlide == 4){
+            matrizAux = slide_down(matrizAux);
+      }
+
+      if (matriz == matrizAux) {
+            moveCombination.push_back(-1);
+            return moveCombination;
+      }
+
+      zeros += checkScore(matrizAux);
+      moveCombination.push_back(firstSlide);
+
+      for (int j = 0; j < 3; j++) {
+            randomMove = rand() % 4 + 1;
+            if (randomMove == 1) {
+                  matrizAux = slide_right(matrizAux);
+            }
+            if (randomMove == 2) {
+                  matrizAux = slide_up(matrizAux);
+            }
+            if (randomMove == 3) {
+                  matrizAux = slide_left(matrizAux);
+            }
+            if (randomMove == 4) {
+                  matrizAux = slide_down(matrizAux);
+            }
+
+            if (matriz == matrizAux) {
+                  moveCombination.push_back(-1);
+                  return moveCombination;
+            }
+
+            zeros += checkScore(matrizAux); 
+            moveCombination.push_back(randomMove);
+      } 
+
+      moveCombination.push_back(zeros);
+
+      matrizAux.clear();
+      return moveCombination;
+}
+
+int checkScore(vector< vector<int> > matriz) {
+      int num = matriz.size();
+      int res = 0;
+
+      for (int i = 0; i < num; i++)
+      {
+            res += count(matriz[i].begin(), matriz[i].end(), 0);
+      }
+
+      return res;
 }
 
 bool badSlide(int slide) {
 
       vector< vector<int> > matrizAux;
 
-      if (slide == 0) {
-            return false;
-      }
-
-      // 1º fazer o slide
       matrizAux = checkSlide(queueMatrix.top(), slide);
-
-      // 2º verificar se teve movimentos
 
       if (matrizAux == queueMatrix.top()) {
             queueMatrix.push(matrizAux);
@@ -149,7 +309,7 @@ bool badSlide(int slide) {
       return false;
 }
 
-int checkDuplicates(vector<vector<int> > matriz)
+int checkDuplicates(vector< vector<int> > matriz)
 {
       int num = matriz.size();
       set<int> table;
@@ -170,55 +330,65 @@ int checkDuplicates(vector<vector<int> > matriz)
             }
       }
 
-      if (table.size() == 0) // ALL ZEROS
-      {
-            table.clear();
-            return 3;
-      }
-
       if (table.size() == 1) // WIN
       {
             table.clear();
             return 2;
       }
 
+      if (table.size() == 0) // ALL ZEROS
+      {
+            table.clear();
+            return 0;
+      }
+
       table.clear();
       return 1;
 }
 
-vector<vector<int> > checkSlide(vector<vector<int> > matriz, int slide)
+int checkZeros(vector< vector<int> > matriz) {
+      int num = matriz.size();
+      int res = 0;
+
+      for (int i = 0; i < num; i++)
+      {
+            res += count(matriz[i].begin(), matriz[i].end(), 0);
+      }
+
+      if (res == num * num) // WIN
+      {
+            return true;
+      }
+
+      return false;
+}
+
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide)
 {
       if (slide == 1)
       {
             matriz = slide_right(matriz);
       }
 
-      else if (slide == 2)
+      else if (slide == 3)
       {
             matriz = slide_left(matriz);
       }
 
-      else
+      else if (slide == 2)
       {
-            matriz = doTranspose(matriz);
+            matriz = slide_up(matriz);
+      }
 
-            if (slide == 3)
-            {
-                  matriz = slide_left(matriz);
-            }
-
-            else if (slide == 4)
-            {
-                  matriz = slide_right(matriz);
-            }
-
-            matriz = doTranspose(matriz);
+      else if (slide == 4)
+      {
+            matriz = slide_down(matriz);
       }
 
       return matriz;
 }
 
-vector<vector<int> > doTranspose(vector<vector<int> > matriz)
+vector< vector<int> > doTranspose(vector< vector<int> > matriz)
 {
       int aux;
       int num = matriz.size();
@@ -236,86 +406,270 @@ vector<vector<int> > doTranspose(vector<vector<int> > matriz)
       return matriz;
 }
 
+
+vector<vector<int> > slide_left(vector< vector<int> > matriz)
+{
+      int flag = 0;
+      int num = matriz.size();
+
+      for (int j = 0; j < num; j++)
+      {
+            for (int i = 0; i < num - 1; i++)
+            {
+                  if (matriz[j][i] == 0)
+                  {
+                        matriz[j] = push_line_left(matriz[j], i);
+                        if (matriz[j][i + 1] != 0)
+                        {
+                              --i;
+                        }
+                  }
+                  else if (matriz[j][i + 1] == 0)
+                  {
+                        matriz[j] = push_line_left(matriz[j], i + 1);
+                        if (matriz[j][i + 1] != 0)
+                        {
+                              --i;
+                        }
+                  }
+                  else
+                  {
+                        if (matriz[j][i] == matriz[j][i + 1] && flag == 0)
+                        {
+                              matriz[j][i + 1] = 0;
+                              matriz[j][i] *= 2;
+                              flag = 1;
+                              i--;
+                        }
+                        else
+                        {
+                              flag = 0;
+                        }
+                  }
+            }
+            flag = 0;
+      }
+
+      return matriz;
+}
+
+
 vector<vector<int> > slide_right(vector<vector<int> > matriz)
 {
+      int flag = 0;
       int num = matriz.size();
 
-      for (int i = 0; i < num; i++) {
-
-            matriz[i] = shift_right(matriz[i]);
-
-            for (int x = 0; x > 0; x--) {
-                  if ((x - 1 >= 0) && ((matriz[i][x] + matriz[i][x - 1]) > 0))
+      for (int j = 0; j < num; j++)
+      {
+            for (int i = num - 1; i > 0; i--)
+            {
+                  if (matriz[j][i] == 0)
                   {
-                        if (matriz[i][x] == matriz[i][x - 1])
+                        matriz[j] = push_line_right(matriz[j], i);
+                        if (matriz[j][i - 1] != 0)
                         {
-                              matriz[i][x] *= 2;
-                              matriz[i][x - 1] = 0;
+                              ++i;
+                        }
+
+                  }
+                  else if (matriz[j][i - 1] == 0)
+                  {
+                        matriz[j] = push_line_right(matriz[j], i - 1);
+                        if (matriz[j][i - 1] != 0)
+                        {
+                              ++i;
                         }
                   }
-            } 
-
-            matriz[i] = shift_right(matriz[i]);
+                  else
+                  {
+                        if (matriz[j][i] == matriz[j][i - 1] && flag == 0)
+                        {
+                              matriz[j][i - 1] = 0;
+                              matriz[j][i] *= 2;
+                              flag = 1;
+                              ++i;
+                        }
+                        else
+                        {
+                              flag = 0;
+                        }
+                  }
+            }
+            flag = 0;
       }
 
       return matriz;
 }
 
-vector<int> shift_right(vector <int> line) {
-
+vector<int> push_line_left(vector<int> line, int index)
+{
       int num = line.size();
-      int marker = num - 1;
-      vector<int> temp(num, 0);
 
-      for(int x = num - 1; x >= 0; x--) {
-            if(line[x] > 0){
-                  temp[marker] = line[x];
-                  marker--;
+      for (int j = index; j < num; j++)
+      {
+            for (int i = j + 1; i < num; i++)
+            {
+                  if (line[i] != 0)
+                  {
+                        line[j] = line[i];
+                        line[i] = 0;
+                        break;
+                  }
             }
       }
 
-      return temp;
+      return line;
 }
 
-vector<vector<int> > slide_left(vector<vector<int> > matriz)
+vector<int> push_line_right(vector<int> line, int index)
+{
+      for (int j = index; j > 0; j--)
+      {
+            for (int i = j - 1; i >= 0; i--)
+            {
+                  if (line[i] != 0)
+                  {
+                        line[j] = line[i];
+                        line[i] = 0;
+                        break;
+                  }
+            }
+      }
+
+      return line;
+}
+
+vector<vector<int> > slide_down(vector<vector<int> > matriz)
+{
+      int flag = 0;
+      int num = matriz.size();
+
+      for (int j = 0; j < num; j++)
+      {
+            for (int i = num - 1; i > 0; i--)
+            {
+                  if (matriz[i][j] == 0)
+                  {
+                        matriz = push_line_down(matriz, j, i);
+                        if (matriz[i - 1][j] != 0)
+                        {
+                              ++i;
+                        }
+
+                  }
+                  else if (matriz[i - 1][j] == 0)
+                  {
+                        matriz = push_line_down(matriz, j, i - 1);
+                        if (matriz[i - 1][j] != 0)
+                        {
+                              ++i;
+                        }
+                  }
+                  else
+                  {
+                        if (matriz[i][j] == matriz[i - 1][j] && flag == 0)
+                        {
+                              matriz[i - 1][j] = 0;
+                              matriz[i][j] *= 2;
+                              flag = 1;
+                              ++i;
+                        }
+                        else
+                        {
+                              flag = 0;
+                        }
+                  }
+            }
+            flag = 0;
+      }
+
+      return matriz;
+}
+
+vector<vector<int> > push_line_down(vector<vector<int> > matriz, int column, int index)
+{
+      for (int j = index; j > 0; j--)
+      {
+            for (int i = j - 1; i >= 0; i--)
+            {
+                  if (matriz[i][column] != 0)
+                  {
+                        matriz[j][column] = matriz[i][column];
+                        matriz[i][column] = 0;
+                        break;
+                  }
+            }
+      }
+
+      return matriz;
+}
+
+vector<vector<int> > slide_up(vector<vector<int> > matriz)
+{
+      int flag = 0;
+      int num = matriz.size();
+
+      for (int j = 0; j < num; j++)
+      {
+            for (int i = 0; i < num - 1; i++)
+            {
+                  if (matriz[i][j] == 0)
+                  {
+                        matriz = push_line_up(matriz, j, i);
+                        if (matriz[i + 1][j] != 0)
+                        {
+                              --i;
+                        }
+
+                  }
+                  else if (matriz[i + 1][j] == 0)
+                  {
+                        matriz = push_line_up(matriz, j, i + 1);
+                        if (matriz[i + 1][j] != 0)
+                        {
+                              --i;
+                        }
+                  }
+                  else
+                  {
+                        if (matriz[i][j] == matriz[i + 1][j] && flag == 0)
+                        {
+                              matriz[i + 1][j] = 0;
+                              matriz[i][j] *= 2;
+                              flag = 1;
+                              --i;
+                        }
+                        else
+                        {
+                              flag = 0;
+                        }
+                  }
+
+            }
+            flag = 0;
+      }
+
+      return matriz;
+}
+
+vector<vector<int> > push_line_up(vector<vector<int> > matriz, int column, int index)
 {
       int num = matriz.size();
 
-      for (int i = 0; i < num; i++) {
-
-            matriz[i] = shift_left(matriz[i]);
-
-            for (int x = 0; x < num; x++) {
-                  if ((x < num - 1) && ((matriz[i][x] + matriz[i][x + 1]) > 0))
+      for (int j = index; j < num; j++)
+      {
+            for (int i = j + 1; i < num; i++)
+            {
+                  if (matriz[i][column] != 0)
                   {
-                        if (matriz[i][x] == matriz[i][x + 1])
-                        {
-                              matriz[i][x] *= 2;
-                              matriz[i][x + 1] = 0;
-                        }
+                        matriz[j][column] = matriz[i][column];
+                        matriz[i][column] = 0;
+                        break;
                   }
-            }  
-
-            matriz[i] = shift_left(matriz[i]);
+            }
       }
 
       return matriz;
-}
-
-vector<int> shift_left(vector <int> line) {
-
-      int num = line.size();
-      int marker = 0;
-      vector<int> temp(num, 0);
-
-            for(int x = 0; x < num; x++) {
-			if(line[x] > 0){
-				temp[marker] = line[x];
-				marker++;
-			}
-            }
-
-      return temp;
 }
 
 void print_line(vector<int> line)
@@ -331,17 +685,25 @@ void print_line(vector<int> line)
       cout << endl;
 }
 
-void printMatrix(vector<vector<int> > matriz)
+void printMatrix(vector< vector<int> > matriz)
 {
       int num = matriz.size();
 
-      cout << "......" << endl;
       for (int j = 0; j < num; j++)
       {
             for (int k = 0; k < num; k++)
             {
-                  cout << matriz[j][k] << " ";
+                  if (to_string(matriz[j][k]).length() == 1) {
+                        cout << matriz[j][k] << "   |   ";
+                  }
+                  if (to_string(matriz[j][k]).length() == 2) {
+                        cout << matriz[j][k] << "  |   ";
+                  }
+                  if (to_string(matriz[j][k]).length() == 3) {
+                        cout << matriz[j][k] << " |   ";
+                  }
             }
             cout << endl;
+            cout << "---- ------- ------- -------" << endl;
       }
 }
