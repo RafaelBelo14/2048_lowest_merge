@@ -5,20 +5,21 @@
 
 #include <iostream>
 #include <algorithm>
+#include <numeric>
 #include <set>
 #include <vector>
 #include <stack> 
+#include <math.h>
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
 
 int limite;
 vector<int> output;
-vector<vector<int> > first_matrix;
 stack<vector<vector <int> > > queueMatrix;
 vector<string> test;
 
-void doCasePrincipal();
+bool doCasePrincipal(int slide, int level);
 bool doCase(int slide, int level);
 
 vector< vector<int> > inputMatrix(int size);
@@ -51,10 +52,10 @@ void printMatrix(vector< vector<int> > matriz);
 
 int main()
 {
-      int reps, size, check;
+      int reps, size;
       cin >> reps;
 
-      auto start = high_resolution_clock::now(); 
+      //auto start = high_resolution_clock::now(); 
 
       for (int i = 0; i < reps; i++)
       {
@@ -70,17 +71,15 @@ int main()
             }
             else {
                   matriz = inputMatrix(size);
-                  first_matrix = matriz;
 
-                  check = checkDuplicates(matriz);
-
-                  if (check == 0 || check == 1) {
+                  if (checkDuplicates(matriz) == 1) {
                         test.push_back("no solution");
                   }
                   else {
                         queueMatrix.push(matriz);
-
-                        doCasePrincipal();
+                        doCasePrincipal(0, 0);
+                        queueMatrix.push(matriz);
+                        doCase(0, 0);
 
                         if (output.size() == 0) {
                               test.push_back("no solution");
@@ -97,9 +96,9 @@ int main()
       for (auto i = test.begin(); i != test.end(); ++i) 
             cout << *i << endl; 
       
-      auto stop = high_resolution_clock::now(); 
+      /*auto stop = high_resolution_clock::now(); 
       auto duration = duration_cast<milliseconds>(stop - start); 
-      cout << duration.count() << endl;
+      cout << duration.count() << endl;*/
       
       test.clear();
       return 0;
@@ -125,41 +124,49 @@ vector< vector<int> > inputMatrix(int size)
     return matriz;
 }
 
-void doCasePrincipal(){
-
-      for (int i = 0; i < 4; i++) {
-            doCase(i, 1);
-            queueMatrix.push(first_matrix);
-      }
-
-}
-
-bool doCase(int slide, int level) {
-
-      //cout << "Level: " << level << endl;
+bool doCasePrincipal(int slide, int level){
 
       if (badSlide(slide) || level >= limite) {             // teste de rejeição
             return false;
       }
 
-      int check = checkDuplicates(queueMatrix.top());
-
-      if (check == 1) {
-            return false;                                   // teste de rejeição
-      }
-
-      if (check == 2) {
+      if (checkDuplicates(queueMatrix.top()) == 2) {
             output.push_back(level);
             limite = level;
             return false;                                   // base case
       }
 
-      if (doCase(bestWay(queueMatrix.top()), level + 1)) {
+      if (doCasePrincipal(bestWay(queueMatrix.top()), level + 1)) {
             return true;
       }
       else {
             queueMatrix.pop();
       } 
+
+      return false;
+}
+
+bool doCase(int slide, int level) {
+
+      if (badSlide(slide) || level >= limite) {             // teste de rejeição
+            return false;
+      }
+
+      if (checkDuplicates(queueMatrix.top()) == 2) {
+            output.push_back(level);
+            limite = level;
+            return false;                                   // base case
+      }
+
+      for (int i = 1; i <= 4; i++) {
+            if (doCase(i, level + 1)) {
+                  return true;
+            }
+            else {
+                  queueMatrix.pop();
+            } 
+      }
+      
 
       return false;
 }
@@ -298,6 +305,10 @@ bool badSlide(int slide) {
 
       vector< vector<int> > matrizAux;
 
+      if (slide == 0) {
+            return false;
+      }
+
       matrizAux = checkSlide(queueMatrix.top(), slide);
 
       if (matrizAux == queueMatrix.top()) {
@@ -312,38 +323,25 @@ bool badSlide(int slide) {
 int checkDuplicates(vector< vector<int> > matriz)
 {
       int num = matriz.size();
-      set<int> table;
+      int sum = 0;
+      int zeros = 0;
 
       for (int i = 0; i < num; i++)
       {
-            for (int j = 0; j < num; j++)
-            {
-                  if (matriz[i][j] != 0)
-                  {
-                        if (table.find(matriz[i][j]) != table.end())
-                        {
-                              table.clear();
-                              return -1; // HAS DUPLICATES
-                        }
-                        table.insert(matriz[i][j]);
-                  }
-            }
+            sum += accumulate(matriz[i].begin(), matriz[i].end(), 0);
+            zeros += count(matriz[i].begin(), matriz[i].end(), 0);
       }
 
-      if (table.size() == 1) // WIN
+      if (log2(sum) != floor(log2(sum))) {
+            return 1;
+      }
+
+      if (zeros == num * num - 1) // WIN
       {
-            table.clear();
             return 2;
       }
 
-      if (table.size() == 0) // ALL ZEROS
-      {
-            table.clear();
-            return 0;
-      }
-
-      table.clear();
-      return 1;
+      return -1;
 }
 
 int checkZeros(vector< vector<int> > matriz) {
