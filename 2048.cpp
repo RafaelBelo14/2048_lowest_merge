@@ -5,10 +5,16 @@
 
 #include <iostream>
 #include <algorithm>
+#include<numeric>
 #include <set>
 #include <vector>
+#include <string> 
 #include <stack> 
+#include <math.h>
+#include <typeinfo>
 #include <chrono>
+#include <type_traits>
+#include <cstdint>
 using namespace std;
 using namespace std::chrono;
 
@@ -73,7 +79,7 @@ int main()
 
                   check = checkDuplicates(matriz);
 
-                  if (check == 0 || check == 1) {
+                  if (check == 1) {
                         test.push_back("no solution");
                   }
                   else {
@@ -301,38 +307,26 @@ bool badSlide(int slide) {
 int checkDuplicates(vector< vector<int> > matriz)
 {
       int num = matriz.size();
-      set<int> table;
+      int sum = 0;
+      int zeros = 0;
 
       for (int i = 0; i < num; i++)
       {
-            for (int j = 0; j < num; j++)
-            {
-                  if (matriz[i][j] != 0)
-                  {
-                        if (table.find(matriz[i][j]) != table.end())
-                        {
-                              table.clear();
-                              return -1; // HAS DUPLICATES
-                        }
-                        table.insert(matriz[i][j]);
-                  }
-            }
+            sum += accumulate(matriz[i].begin(), matriz[i].end(), 0);
+            zeros += count(matriz[i].begin(), matriz[i].end(), 0);
       }
 
-      if (table.size() == 1) // WIN
+      if (log2(sum) != floor(log2(sum))) {
+            //cout << "Se acabou" << endl;
+            return 1;
+      }
+
+      if (zeros == num * num - 1) // WIN
       {
-            table.clear();
             return 2;
       }
 
-      if (table.size() == 0) // ALL ZEROS
-      {
-            table.clear();
-            return 0;
-      }
-
-      table.clear();
-      return 1;
+      return -1;
 }
 
 int checkZeros(vector< vector<int> > matriz) {
