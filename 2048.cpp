@@ -19,26 +19,27 @@ stack<vector<vector <int> > > queueMatrix;
 vector<string> test;
 
 
-bool doCase(int slide, int flag, int level);
+bool doCase(int slide, int level);
 
 vector< vector<int> > inputMatrix(int size);
 
+bool checkMoves(vector< vector<int> > matriz);
 int checkDuplicates(vector< vector<int> > matriz);
-bool badSlide(int slide, int flag);
+bool badSlide(int slide );
 
-vector< vector<int> > checkSlide(vector< vector<int> > matriz, int flag, int slide);
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide);
 vector< vector<int> > doTranspose(vector< vector<int> > matriz);
 
-vector< vector<int> > slide_left(vector< vector<int> > matriz, int flag);
+vector< vector<int> > slide_left(vector< vector<int> > matriz);
 vector<int> push_line_left(vector<int> line, int index);
 
-vector< vector<int> > slide_right(vector< vector<int> > matriz, int flag);
+vector< vector<int> > slide_right(vector< vector<int> > matriz);
 vector<int> push_line_right(vector<int> line, int index);
 
-vector<vector<int> > slide_down(vector<vector<int> > matriz, int flag);
+vector<vector<int> > slide_down(vector<vector<int> > matriz);
 vector<vector<int> > push_line_down(vector<vector<int> > matriz, int column, int index);
 
-vector<vector<int> > slide_up(vector<vector<int> > matriz, int flag);
+vector<vector<int> > slide_up(vector<vector<int> > matriz);
 vector<vector<int> > push_line_up(vector<vector<int> > matriz, int column, int index);
 
 void print_line(vector<int>);
@@ -68,13 +69,14 @@ int main()
 
                   check = checkDuplicates(matriz);
 
-                  if (check == 1) {
+                  if (check == 1 || !checkMoves(matriz)) {
                         test.push_back("no solution");
                   }
+
                   else {
                         queueMatrix.push(matriz);
 
-                        doCase(0, 0, 0);
+                        doCase(0, 0);
 
                         if (output.size() == 0) {
                               test.push_back("no solution");
@@ -99,9 +101,9 @@ int main()
       return 0;
 }
 
-bool doCase(int slide, int flag, int level) {
+bool doCase(int slide, int level) {
 
-      if (badSlide(slide, flag) || level >= limite) {           // teste de rejeição
+      if (badSlide(slide) || level >= limite) {           // teste de rejeição
             return false;
       }
 
@@ -112,7 +114,7 @@ bool doCase(int slide, int flag, int level) {
       }
 
       for(int i = 1; i <= 4; i++) {
-            if (doCase(i, flag, level + 1)) {
+            if (doCase(i, level + 1)) {
                   return true;
             }
             else {
@@ -143,7 +145,7 @@ vector< vector<int> > inputMatrix(int size)
     return matriz;
 }
 
-bool badSlide(int slide, int flag) {
+bool badSlide(int slide) {
 
       vector< vector<int> > matrizAux;
 
@@ -152,7 +154,7 @@ bool badSlide(int slide, int flag) {
       }
 
       // 1º fazer o slide
-      matrizAux = checkSlide(queueMatrix.top(), flag, slide);
+      matrizAux = checkSlide(queueMatrix.top(), slide);
 
       // 2º verificar se teve movimentos
 
@@ -162,6 +164,21 @@ bool badSlide(int slide, int flag) {
       }
       
       queueMatrix.push(matrizAux);
+      return false;
+}
+
+bool checkMoves(vector< vector<int> > matriz) {
+      vector< vector<int> > matrizAux = matriz;
+
+      for (int i = 0; i < 4; i++)
+      {
+            matriz = checkSlide(matriz, i);
+
+            if (matrizAux != matriz) {
+                  return true;
+            }
+      }
+
       return false;
 }
 
@@ -182,6 +199,10 @@ int checkDuplicates(vector< vector<int> > matriz)
             return 1;
       }
 
+      if (log2(sum) == floor(log2(sum)) && (zeros == 0)) {
+            return -2;
+      }
+
       if (zeros == num * num - 1) // WIN
       {
             return 2;
@@ -190,33 +211,34 @@ int checkDuplicates(vector< vector<int> > matriz)
       return -1;
 }
 
-vector< vector<int> > checkSlide(vector< vector<int> > matriz, int flag, int slide)
+vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide)
 {
       if (slide == 1)
       {
-            matriz = slide_right(matriz, flag);
+            matriz = slide_right(matriz);
       }
 
       else if (slide == 2)
       {
-            matriz = slide_left(matriz, flag);
+            matriz = slide_left(matriz);
       }
 
       else if (slide == 3)
       {
-            matriz = slide_up(matriz, flag);
+            matriz = slide_up(matriz);
       }
 
       else if (slide == 4)
       {
-            matriz = slide_down(matriz, flag);
+            matriz = slide_down(matriz);
       }
 
       return matriz;
 }
 
-vector<vector<int> > slide_left(vector< vector<int> > matriz, int flag)
+vector<vector<int> > slide_left(vector< vector<int> > matriz)
 {
+      int flag = 0;
       int num = matriz.size();
 
       for (int j = 0; j < num; j++)
@@ -280,8 +302,9 @@ vector<int> push_line_left(vector<int> line, int index)
       return line;
 }
 
-vector<vector<int> > slide_right(vector<vector<int> > matriz, int flag)
+vector<vector<int> > slide_right(vector<vector<int> > matriz)
 {
+      int flag = 0;
       int num = matriz.size();
 
       for (int j = 0; j < num; j++)
@@ -344,8 +367,9 @@ vector<int> push_line_right(vector<int> line, int index)
       return line;
 }
 
-vector<vector<int> > slide_down(vector<vector<int> > matriz, int flag)
+vector<vector<int> > slide_down(vector<vector<int> > matriz)
 {
+      int flag = 0;
       int num = matriz.size();
 
       for (int j = 0; j < num; j++)
@@ -408,8 +432,9 @@ vector<vector<int> > push_line_down(vector<vector<int> > matriz, int column, int
       return matriz;
 }
 
-vector<vector<int> > slide_up(vector<vector<int> > matriz, int flag)
+vector<vector<int> > slide_up(vector<vector<int> > matriz)
 {
+      int flag = 0;
       int num = matriz.size();
 
       for (int j = 0; j < num; j++)
