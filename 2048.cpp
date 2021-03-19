@@ -26,6 +26,7 @@ vector< vector<int> > inputMatrix(int size);
 
 int checkDuplicates(vector< vector<int> > matriz);
 bool badSlide(int slide);
+bool checkMoves(vector< vector<int> > matriz);
 int checkZeros(vector< vector<int> > matriz);
 
 int bestWay(vector< vector<int> > matriz);
@@ -72,7 +73,7 @@ int main()
             else {
                   matriz = inputMatrix(size);
 
-                  if (checkDuplicates(matriz) == 1) {
+                  if (checkDuplicates(matriz) == 1 || checkMoves(matriz) == false) {
                         test.push_back("no solution");
                   }
                   else {
@@ -342,6 +343,21 @@ int checkDuplicates(vector< vector<int> > matriz)
       }
 
       return -1;
+}
+
+bool checkMoves(vector< vector<int> > matriz) {
+      vector< vector<int> > matrizAux = matriz;
+
+      for (int i = 0; i < 4; i++)
+      {
+            matriz = checkSlide(matriz, i);
+
+            if (matrizAux != matriz) {
+                  return true;
+            }
+      }
+
+      return false;
 }
 
 int checkZeros(vector< vector<int> > matriz) {
