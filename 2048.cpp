@@ -19,38 +19,24 @@ stack<vector<vector <int> > > queueMatrix;
 vector<string> test;
 
 
-bool doCase(int slide, int level);
+int doCase(int slide, int level);
 
 vector< vector<int> > inputMatrix(int size);
 
-bool checkMoves(vector< vector<int> > matriz);
-int checkDuplicates(vector< vector<int> > matriz);
-bool badSlide(int slide );
+bool checkWin(vector< vector<int> > matriz);
+bool badSlide(int slide);
 
 vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide);
-vector< vector<int> > doTranspose(vector< vector<int> > matriz);
 
 vector< vector<int> > slide_left(vector< vector<int> > matriz);
-vector<int> push_line_left(vector<int> line, int index);
-
 vector< vector<int> > slide_right(vector< vector<int> > matriz);
-vector<int> push_line_right(vector<int> line, int index);
-
 vector<vector<int> > slide_down(vector<vector<int> > matriz);
-vector<vector<int> > push_line_down(vector<vector<int> > matriz, int column, int index);
-
 vector<vector<int> > slide_up(vector<vector<int> > matriz);
-vector<vector<int> > push_line_up(vector<vector<int> > matriz, int column, int index);
-
-void print_line(vector<int>);
-void printMatrix(vector< vector<int> > matriz);
 
 int main()
 {
-      int reps, size, check;
+      int reps, size;
       cin >> reps;
-
-      //auto start = high_resolution_clock::now(); 
 
       for (int i = 0; i < reps; i++)
       {
@@ -64,12 +50,11 @@ int main()
                   test.push_back("no solution");
                   matriz = inputMatrix(size);
             }
+
             else {
                   matriz = inputMatrix(size);
 
-                  check = checkDuplicates(matriz);
-
-                  if (check == 1 || !checkMoves(matriz)) {
+                  if (matriz.size() == 0) {
                         test.push_back("no solution");
                   }
 
@@ -93,54 +78,59 @@ int main()
       for (auto i = test.begin(); i != test.end(); ++i) 
             cout << *i << endl; 
       
-      /*auto stop = high_resolution_clock::now(); 
-      auto duration = duration_cast<milliseconds>(stop - start); 
-      cout << duration.count() << endl;*/
-      
       test.clear();
       return 0;
 }
 
-bool doCase(int slide, int level) {
+int doCase(int slide, int level) {
 
-      if (badSlide(slide) || level >= limite) {           // teste de rejeição
-            return false;
+      if (level >= limite) {
+            return 0;
       }
 
-      if (checkDuplicates(queueMatrix.top()) == 2) {
+      if (badSlide(slide)) {          // teste de rejeição
+            return 1;
+      }
+
+      if (checkWin(queueMatrix.top())) {
             output.push_back(level);
             limite = level;
-            return false;                       // base case
+            return 1;                       // base case
       }
 
       for(int i = 1; i <= 4; i++) {
-            if (doCase(i, level + 1)) {
-                  return true;
-            }
-            else {
+            if (doCase(i, level + 1) == 1) {
                   queueMatrix.pop();
             }
       }
 
-      return false;
+      return 1;
 }
 
 vector< vector<int> > inputMatrix(int size)
 {
       int aux;
+      int sum = 0;
       vector< vector<int> > matriz;
 
       for (int i = 0; i < size; i++) { 
 
-        vector<int> row; 
-  
-        for (int j = 0; j < size; j++) { 
-            cin >> aux;
-            row.push_back(aux); 
-        } 
+            vector<int> row; 
+      
+            for (int j = 0; j < size; j++) { 
+                  cin >> aux;
+                  row.push_back(aux); 
+            } 
 
-        matriz.push_back(row); 
-    }
+            matriz.push_back(row);
+            sum += accumulate(matriz[i].begin(), matriz[i].end(), 0);
+      }
+
+      if (log2(sum) != floor(log2(sum))) {
+            matriz.clear();
+            return matriz;
+      }
+
 
     return matriz;
 }
@@ -180,48 +170,22 @@ bool badSlide(int slide) {
       return false;
 }
 
-bool checkMoves(vector< vector<int> > matriz) {
-      vector< vector<int> > matrizAux = matriz;
-
-      for (int i = 0; i < 4; i++)
-      {
-            matriz = checkSlide(matriz, i);
-
-            if (matrizAux != matriz) {
-                  return true;
-            }
-      }
-
-      return false;
-}
-
-int checkDuplicates(vector< vector<int> > matriz)
+bool checkWin(vector< vector<int> > matriz)
 {
       int num = matriz.size();
-      int sum = 0;
       int zeros = 0;
 
       for (int i = 0; i < num; i++)
       {
-            sum += accumulate(matriz[i].begin(), matriz[i].end(), 0);
             zeros += count(matriz[i].begin(), matriz[i].end(), 0);
-      }
-
-      if (log2(sum) != floor(log2(sum))) {
-            //cout << "Se acabou" << endl;
-            return 1;
-      }
-
-      if (log2(sum) == floor(log2(sum)) && (zeros == 0)) {
-            return -2;
       }
 
       if (zeros == num * num - 1) // WIN
       {
-            return 2;
+            return true;
       }
 
-      return -1;
+      return false;
 }
 
 vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide)
@@ -387,32 +351,4 @@ vector <vector<int> > slide_down(vector <vector<int> > matriz)
             }
       }
       return matriz;
-}
-
-void print_line(vector<int> line)
-{
-      int num = line.size();
-
-      cout << "........" << endl;
-      for (int i = 0; i < num; i++)
-      {
-            cout << line[i] << " ";
-      }
-
-      cout << endl;
-}
-
-void printMatrix(vector< vector<int> > matriz)
-{
-      int num = matriz.size();
-
-      cout << "......" << endl;
-      for (int j = 0; j < num; j++)
-      {
-            for (int k = 0; k < num; k++)
-            {
-                  cout << matriz[j][k] << " ";
-            }
-            cout << endl;
-      }
 }
