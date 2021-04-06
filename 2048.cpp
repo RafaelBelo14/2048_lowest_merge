@@ -236,267 +236,143 @@ vector< vector<int> > checkSlide(vector< vector<int> > matriz, int slide)
       return matriz;
 }
 
-vector<vector<int> > slide_left(vector< vector<int> > matriz)
+vector <vector<int> > slide_left(vector <vector<int> > matriz) 
 {
-      int flag = 0;
-      int num = matriz.size();
+      int tamanho = matriz.size();
+      int pos_ultimo, somou, index;
 
-      for (int j = 0; j < num; j++)
-      {
-            for (int i = 0; i < num - 1; i++)
-            {
-                  if (matriz[j][i] == 0)
-                  {
-                        matriz[j] = push_line_left(matriz[j], i);
-                        if (matriz[j][i + 1] != 0)
-                        {
-                              --i;
+      for (int i = 0; i < tamanho; i++) {
+
+            vector<int> linha(tamanho);
+            pos_ultimo = 0;
+            index = 0;
+            somou = 0;
+
+            for (int j = 0; j < tamanho; j++) {
+
+                  if (matriz[i][j] != 0) {
+
+                        if (linha[pos_ultimo] == matriz[i][j] && somou == 0) {
+                              linha[pos_ultimo] *= 2;
+                              somou = 1;
                         }
-                  }
-                  else if (matriz[j][i + 1] == 0)
-                  {
-                        matriz[j] = push_line_left(matriz[j], i + 1);
-                        if (matriz[j][i + 1] != 0)
-                        {
-                              --i;
-                        }
-                  }
-                  else
-                  {
-                        if (matriz[j][i] == matriz[j][i + 1] && flag == 0)
-                        {
-                              matriz[j][i + 1] = 0;
-                              matriz[j][i] *= 2;
-                              flag = 1;
-                              --i;
-                        }
-                        else
-                        {
-                              flag = 0;
+                        else {
+                              linha[index] = matriz[i][j];
+                              index++;
+                              pos_ultimo = index - 1;
+                              somou = 0;
                         }
                   }
             }
-            flag = 0;
-      }
 
+            matriz[i] = linha;
+      }
       return matriz;
 }
 
-vector<int> push_line_left(vector<int> line, int index)
+vector <vector<int> > slide_right(vector <vector<int> > matriz) 
 {
-      int num = line.size();
+      int tamanho = matriz.size();
+      int pos_ultimo, somou, index;
 
-      for (int j = index; j < num; j++)
-      {
-            for (int i = j + 1; i < num; i++)
-            {
-                  if (line[i] != 0)
-                  {
-                        line[j] = line[i];
-                        line[i] = 0;
-                        break;
-                  }
-            }
-      }
+      for (int i = 0; i < tamanho; i++) {
 
-      return line;
-}
+            vector<int> linha(tamanho);
+            pos_ultimo = tamanho - 1;
+            index = tamanho - 1;
+            somou = 0;
 
-vector<vector<int> > slide_right(vector<vector<int> > matriz)
-{
-      int flag = 0;
-      int num = matriz.size();
+            for (int j = tamanho - 1; j >= 0; j--) {
 
-      for (int j = 0; j < num; j++)
-      {
-            for (int i = num - 1; i > 0; i--)
-            {
-                  if (matriz[j][i] == 0)
-                  {
-                        matriz[j] = push_line_right(matriz[j], i);
-                        if (matriz[j][i - 1] != 0)
-                        {
-                              ++i;
+                  if (matriz[i][j] != 0) {
+
+                        if (linha[pos_ultimo] == matriz[i][j] && somou == 0) {
+                              linha[pos_ultimo] *= 2;
+                              somou = 1;
                         }
-
-                  }
-                  else if (matriz[j][i - 1] == 0)
-                  {
-                        matriz[j] = push_line_right(matriz[j], i - 1);
-                        if (matriz[j][i - 1] != 0)
-                        {
-                              ++i;
-                        }
-                  }
-                  else
-                  {
-                        if (matriz[j][i] == matriz[j][i - 1] && flag == 0)
-                        {
-                              matriz[j][i - 1] = 0;
-                              matriz[j][i] *= 2;
-                              flag = 1;
-                              ++i;
-                        }
-                        else
-                        {
-                              flag = 0;
+                        else {
+                              linha[index] = matriz[i][j];
+                              index--;
+                              pos_ultimo = index + 1;
+                              somou = 0;
                         }
                   }
             }
-            flag = 0;
-      }
 
+            matriz[i] = linha;
+      }
       return matriz;
 }
 
-vector<int> push_line_right(vector<int> line, int index)
+vector <vector<int> > slide_up(vector <vector<int> > matriz) 
 {
-      for (int j = index; j > 0; j--)
-      {
-            for (int i = j - 1; i >= 0; i--)
-            {
-                  if (line[i] != 0)
-                  {
-                        line[j] = line[i];
-                        line[i] = 0;
-                        break;
-                  }
-            }
-      }
+      int tamanho = matriz.size();
+      int pos_ultimo, somou, index;
 
-      return line;
-}
+      for (int j = 0; j < tamanho; j++) {
 
-vector<vector<int> > slide_down(vector<vector<int> > matriz)
-{
-      int flag = 0;
-      int num = matriz.size();
+            vector<int> linha(tamanho);
+            pos_ultimo = 0;
+            index = 0;
+            somou = 0;
 
-      for (int j = 0; j < num; j++)
-      {
-            for (int i = num - 1; i > 0; i--)
-            {
-                  if (matriz[i][j] == 0)
-                  {
-                        matriz = push_line_down(matriz, j, i);
-                        if (matriz[i - 1][j] != 0)
-                        {
-                              ++i;
+            for (int i = 0; i < tamanho; i++) {
+
+                  if (matriz[i][j] != 0) {
+
+                        if (linha[pos_ultimo] == matriz[i][j] && somou == 0) {
+                              linha[pos_ultimo] *= 2;
+                              somou = 1;
                         }
-
-                  }
-                  else if (matriz[i - 1][j] == 0)
-                  {
-                        matriz = push_line_down(matriz, j, i - 1);
-                        if (matriz[i - 1][j] != 0)
-                        {
-                              ++i;
-                        }
-                  }
-                  else
-                  {
-                        if (matriz[i][j] == matriz[i - 1][j] && flag == 0)
-                        {
-                              matriz[i - 1][j] = 0;
-                              matriz[i][j] *= 2;
-                              flag = 1;
-                              ++i;
-                        }
-                        else
-                        {
-                              flag = 0;
+                        else {
+                              linha[index] = matriz[i][j];
+                              index++;
+                              pos_ultimo = index - 1;
+                              somou = 0;
                         }
                   }
             }
-            flag = 0;
-      }
 
+            for (int i = 0; i < tamanho; i++) {
+                  matriz[i][j] = linha[i];
+            }
+      }
       return matriz;
 }
 
-vector<vector<int> > push_line_down(vector<vector<int> > matriz, int column, int index)
+vector <vector<int> > slide_down(vector <vector<int> > matriz) 
 {
-      for (int j = index; j > 0; j--)
-      {
-            for (int i = j - 1; i >= 0; i--)
-            {
-                  if (matriz[i][column] != 0)
-                  {
-                        matriz[j][column] = matriz[i][column];
-                        matriz[i][column] = 0;
-                        break;
+      int tamanho = matriz.size();
+      int pos_ultimo, somou, index;
+
+      for (int j = 0; j < tamanho; j++) {
+
+            vector<int> linha(tamanho);
+            pos_ultimo = tamanho - 1;
+            index = tamanho - 1;
+            somou = 0;
+
+            for (int i = tamanho - 1; i >= 0; i--) {
+
+                  if (matriz[i][j] != 0) {
+
+                        if (linha[pos_ultimo] == matriz[i][j] && somou == 0) {
+                              linha[pos_ultimo] *= 2;
+                              somou = 1;
+                        }
+                        else {
+                              linha[index] = matriz[i][j];
+                              index--;
+                              pos_ultimo = index + 1;
+                              somou = 0;
+                        }
                   }
             }
-      }
 
-      return matriz;
-}
-
-vector<vector<int> > slide_up(vector<vector<int> > matriz)
-{
-      int flag = 0;
-      int num = matriz.size();
-
-      for (int j = 0; j < num; j++)
-      {
-            for (int i = 0; i < num - 1; i++)
-            {
-                  if (matriz[i][j] == 0)
-                  {
-                        matriz = push_line_up(matriz, j, i);
-                        if (matriz[i + 1][j] != 0)
-                        {
-                              --i;
-                        }
-
-                  }
-                  else if (matriz[i + 1][j] == 0)
-                  {
-                        matriz = push_line_up(matriz, j, i + 1);
-                        if (matriz[i + 1][j] != 0)
-                        {
-                              --i;
-                        }
-                  }
-                  else
-                  {
-                        if (matriz[i][j] == matriz[i + 1][j] && flag == 0)
-                        {
-                              matriz[i + 1][j] = 0;
-                              matriz[i][j] *= 2;
-                              flag = 1;
-                              --i;
-                        }
-                        else
-                        {
-                              flag = 0;
-                        }
-                  }
-
-            }
-            flag = 0;
-      }
-
-      return matriz;
-}
-
-vector<vector<int> > push_line_up(vector<vector<int> > matriz, int column, int index)
-{
-      int num = matriz.size();
-
-      for (int j = index; j < num; j++)
-      {
-            for (int i = j + 1; i < num; i++)
-            {
-                  if (matriz[i][column] != 0)
-                  {
-                        matriz[j][column] = matriz[i][column];
-                        matriz[i][column] = 0;
-                        break;
-                  }
+            for (int i = tamanho - 1; i >= 0; i--) {
+                  matriz[i][j] = linha[i];
             }
       }
-
       return matriz;
 }
 
