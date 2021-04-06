@@ -147,23 +147,36 @@ vector< vector<int> > inputMatrix(int size)
 
 bool badSlide(int slide) {
 
-      vector< vector<int> > matrizAux;
+      vector <vector<int> > matrizNova;
+      vector <vector<int> > matrizAtual;
+      vector <vector<int> > matrizAntiga;
 
       if (slide == 0) {
             return false;
       }
 
+      matrizAtual = queueMatrix.top();
+      queueMatrix.pop();
+
+      if (!queueMatrix.empty()) {
+            matrizAntiga = queueMatrix.top();
+            queueMatrix.pop();
+            queueMatrix.push(matrizAntiga);
+      }
+      
+      queueMatrix.push(matrizAtual);
+
       // 1º fazer o slide
-      matrizAux = checkSlide(queueMatrix.top(), slide);
+      matrizNova = checkSlide(queueMatrix.top(), slide);
 
       // 2º verificar se teve movimentos
 
-      if (matrizAux == queueMatrix.top()) {
-            queueMatrix.push(matrizAux);
+      if (matrizNova == matrizAtual || matrizNova == matrizAntiga) {
+            queueMatrix.push(matrizNova);
             return true;
       }
-      
-      queueMatrix.push(matrizAux);
+
+      queueMatrix.push(matrizNova);
       return false;
 }
 
